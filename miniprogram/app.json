@@ -1,0 +1,37 @@
+{
+  "pages": [
+    "pages/chat/chat",
+    "pages/mistakes/mistakes",
+    "pages/profile/profile"
+  ],
+  "window": {
+    "navigationBarBackgroundColor": "#4A90D9",
+    "navigationBarTitleText": "AgentDome",
+    "navigationBarTextStyle": "white"
+  },
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#4A90D9",
+    "list": [
+      {
+        "pagePath": "pages/chat/chat",
+        "text": "聊天",
+        "iconPath": "images/tab-chat.png",
+        "selectedIconPath": "images/tab-chat-active.png"
+      },
+      {
+        "pagePath": "pages/mistakes/mistakes",
+        "text": "错题集",
+        "iconPath": "images/tab-mistake.png",
+        "selectedIconPath": "images/tab-mistake-active.png"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的",
+        "iconPath": "images/tab-profile.png",
+        "selectedIconPath": "images/tab-profile-active.png"
+      }
+    ]
+  },
+  "requiredPrivateInfos": ["chooseMedia"]
+}

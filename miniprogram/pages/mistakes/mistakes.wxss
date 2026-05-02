@@ -1,0 +1,74 @@
+.tag-bar {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 12px 0;
+}
+
+.tag {
+  padding: 6px 16px;
+  margin: 4px;
+  background: white;
+  border-radius: 20px;
+  font-size: 14px;
+  color: #666;
+}
+
+.tag.active {
+  background: #4A90D9;
+  color: white;
+}
+
+.mistake-card {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.subject {
+  font-weight: bold;
+  color: #4A90D9;
+}
+
+.date {
+  font-size: 12px;
+  color: #999;
+}
+
+.preview {
+  font-size: 14px;
+  color: #333;
+  line-height: 1.5;
+}
+
+.card-footer {
+  display: flex;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.error-type {
+  font-size: 12px;
+  color: #e74c3c;
+  margin-right: 8px;
+}
+
+.mini-tag {
+  font-size: 12px;
+  background: #f0f0f0;
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-right: 4px;
+}
+
+.empty {
+  text-align: center;
+  padding: 40px;
+  color: #999;
+}
