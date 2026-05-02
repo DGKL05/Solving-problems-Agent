@@ -77,14 +77,16 @@ Page({
         const data = res.data;
         messages.push({
           role: 'assistant',
-          content: `已识别题目：\n${data.cleanedText}\n\n正在解题...`,
+          content: `📷 已识别题目：\n${data.cleanedText}\n\n---\n🤖 AI解答：\n${data.solution}`,
           time: new Date()
         });
         this.setData({ messages });
+      } else {
+        wx.showToast({ title: '识别失败', icon: 'error' });
       }
     }).catch((err) => {
       wx.hideLoading();
-      wx.showToast({ title: '上传失败', icon: 'error' });
+      wx.showToast({ title: '上传失败: ' + (err.errMsg || '网络错误'), icon: 'error' });
     });
   },
 

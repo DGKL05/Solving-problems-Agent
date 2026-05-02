@@ -18,7 +18,7 @@ spring:
         format_sql: true
   data:
     mongodb:
-      uri: mongodb://${MONGO_HOST:localhost}:27017/agent_dome
+      uri: mongodb://localhost:27017/agent_dome
     redis:
       host: ${REDIS_HOST:localhost}
       port: 6379
@@ -43,9 +43,12 @@ wechat:
   app-id: ${WECHAT_APP_ID:}
   app-secret: ${WECHAT_APP_SECRET:}
 
+
 jwt:
-  secret: ${JWT_SECRET:change-me-in-production}
+  secret: ${JWT_SECRET:change-me-in-production-to-a-secure-key-at-least-256-bits-long}
   expiration-ms: 604800000
+
+
 
 logging:
   level:

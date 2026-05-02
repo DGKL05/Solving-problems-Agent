@@ -31,28 +31,46 @@ function request(options) {
   });
 }
 
-function upload(filePath, subjectType, sessionId) {
+function doUpload(filePath, subjectType, sessionId, resolve, reject) {
   const token = auth.getToken();
+  if (!token) {
+    auth.login(() => doUpload(filePath, subjectType, sessionId, resolve, reject));
+    return;
+  }
 
-  return new Promise((resolve, reject) => {
-    wx.uploadFile({
-      url: `${app.globalData.baseUrl}/api/chat/upload`,
-      filePath: filePath,
-      name: 'file',
-      formData: {
-        subjectType: subjectType,
-        sessionId: sessionId
-      },
-      header: {
-        'Authorization': `Bearer ${token}`
-      },
-      success(res) {
-        resolve(JSON.parse(res.data));
-      },
-      fail(err) {
-        reject(err);
+  wx.uploadFile({
+    url: `${app.globalData.baseUrl}/api/chat/upload`,
+    filePath: filePath,
+    name: 'file',
+    formData: {
+      token: token,
+      subjectType: subjectType,
+      sessionId: sessionId
+    },
+    header: {
+      'Authorization': `Bearer ${token}`
+    },
+    success(res) {
+      try {
+        const data = JSON.parse(res.data);
+        if (data.code === 401) {
+          auth.login(() => doUpload(filePath, subjectType, sessionId, resolve, reject));
+        } else {
+          resolve(data);
+        }
+      } catch (e) {
+        reject(new Error('解析服务器响应失败: ' + (res.data || '').substring(0, 100)));
       }
-    });
+    },
+    fail(err) {
+      reject(err);
+    }
+  });
+}
+
+function upload(filePath, subjectType, sessionId) {
+  return new Promise((resolve, reject) => {
+    doUpload(filePath, subjectType, sessionId, resolve, reject);
   });
 }
 

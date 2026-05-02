@@ -34,17 +34,22 @@ public class SecurityConfig implements WebMvcConfigurer {
         @Override
         public boolean preHandle(HttpServletRequest request, HttpServletResponse response,
                                  Object handler) throws Exception {
+            String token = null;
+
+            // Try Authorization header first
             String authHeader = request.getHeader("Authorization");
-            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-                response.setStatus(401);
-                response.getWriter().write("{\"code\":401,\"message\":\"Unauthorized\"}");
-                return false;
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                token = authHeader.substring(7);
             }
 
-            String token = authHeader.substring(7);
-            if (!jwtUtil.validateToken(token)) {
+            // Fallback to request parameter (for wx.uploadFile compatibility)
+            if (token == null || token.isEmpty()) {
+                token = request.getParameter("token");
+            }
+
+            if (token == null || !jwtUtil.validateToken(token)) {
                 response.setStatus(401);
-                response.getWriter().write("{\"code\":401,\"message\":\"Invalid token\"}");
+                response.getWriter().write("{\"code\":401,\"message\":\"Unauthorized\"}");
                 return false;
             }
 

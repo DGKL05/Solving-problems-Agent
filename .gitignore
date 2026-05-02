@@ -21,6 +21,7 @@ Thumbs.db
 # Environment
 .env
 .env.local
+application-dev.yml
 
 # Superpowers (brainstorm artifacts)
 .superpowers/

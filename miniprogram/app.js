@@ -3,7 +3,7 @@ App({
     userInfo: null,
     token: null,
     userId: null,
-    baseUrl: 'https://your-api.domain.com'
+    baseUrl: 'http://localhost:8080'
   },
 
   onLaunch() {

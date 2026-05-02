@@ -15,23 +15,16 @@
     "list": [
       {
         "pagePath": "pages/chat/chat",
-        "text": "聊天",
-        "iconPath": "images/tab-chat.png",
-        "selectedIconPath": "images/tab-chat-active.png"
+        "text": "聊天"
       },
       {
         "pagePath": "pages/mistakes/mistakes",
-        "text": "错题集",
-        "iconPath": "images/tab-mistake.png",
-        "selectedIconPath": "images/tab-mistake-active.png"
+        "text": "错题集"
       },
       {
         "pagePath": "pages/profile/profile",
-        "text": "我的",
-        "iconPath": "images/tab-profile.png",
-        "selectedIconPath": "images/tab-profile-active.png"
+        "text": "我的"
       }
     ]
-  },
-  "requiredPrivateInfos": ["chooseMedia"]
+  }
 }
