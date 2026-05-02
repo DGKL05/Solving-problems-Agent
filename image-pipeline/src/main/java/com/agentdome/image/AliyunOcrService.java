@@ -8,117 +8,92 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Base64;
 
 @Service
 public class AliyunOcrService {
 
-    @Value("${aliyun.ocr.access-key-id:}")
-    private String accessKeyId;
-
-    @Value("${aliyun.ocr.access-key-secret:}")
-    private String accessKeySecret;
+    @Value("${aliyun.dashscope.api-key}")
+    private String apiKey;
 
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    private static final String OCR_ENDPOINT = "https://ocr-api.cn-hangzhou.aliyuncs.com/";
-    private static final SimpleDateFormat ISO8601 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+    private static final String VL_OCR_URL =
+            "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions";
 
-    static {
-        ISO8601.setTimeZone(TimeZone.getTimeZone("UTC"));
-    }
-
+    /**
+     * Use qwen-vl-ocr-latest model to extract text from image.
+     */
     public OcrResult recognize(byte[] imageBytes) {
         try {
             String base64Image = Base64.getEncoder().encodeToString(imageBytes);
 
-            // Build signed RPC request
-            Map<String, String> params = new TreeMap<>();
-            params.put("Action", "RecognizeGeneral");
-            params.put("Version", "2021-07-07");
-            params.put("Format", "JSON");
-            params.put("SignatureMethod", "HMAC-SHA1");
-            params.put("SignatureNonce", UUID.randomUUID().toString());
-            params.put("SignatureVersion", "1.0");
-            params.put("Timestamp", ISO8601.format(new Date()));
-            params.put("AccessKeyId", accessKeyId);
-
-            String query = buildQuery(params);
-            String signature = sign(query);
-            params.put("Signature", signature);
-
-            // Build form body with image
-            String formBody = "ImageContent=" + URLEncoder.encode(base64Image, StandardCharsets.UTF_8);
+            String requestBody = objectMapper.writeValueAsString(
+                    new VlOcrRequest(base64Image));
 
             HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setBearerAuth(apiKey);
 
-            String url = OCR_ENDPOINT + "?" + buildQuery(params);
             ResponseEntity<String> response = restTemplate.postForEntity(
-                    url, new HttpEntity<>(formBody, headers), String.class);
+                    VL_OCR_URL, new HttpEntity<>(requestBody, headers), String.class);
 
             if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
-                throw new BusinessException("OCR API returned non-success: " + response.getStatusCode());
+                throw new BusinessException("VL OCR API returned non-success: " + response.getStatusCode());
             }
 
             JsonNode root = objectMapper.readTree(response.getBody());
-            if (root.has("Message")) {
-                throw new BusinessException("OCR error: " + root.get("Message").asText());
+            if (root.has("error")) {
+                throw new BusinessException("VL OCR error: " + root.get("error").path("message").asText());
             }
 
-            StringBuilder rawText = new StringBuilder();
-            JsonNode data = root.get("Data");
-            if (data != null && data.has("content")) {
-                JsonNode content = data.get("content");
-                if (content.has("prism_wordsInfo")) {
-                    for (JsonNode word : content.get("prism_wordsInfo")) {
-                        rawText.append(word.get("word").asText()).append("\n");
-                    }
-                }
-            }
+            String text = root.path("choices").get(0).path("message").path("content").asText("");
 
             OcrResult result = new OcrResult();
-            result.setRawText(rawText.isEmpty() ? base64Image.substring(0, 100) : rawText.toString());
-            result.setConfidence(data != null && data.has("height") ? 0.9 : 0.0);
+            result.setRawText(text);
+            result.setConfidence(0.95);
             return result;
 
         } catch (BusinessException e) {
             throw e;
         } catch (Exception e) {
-            throw new BusinessException("OCR recognition failed: " + e.getMessage());
+            throw new BusinessException("VL OCR recognition failed: " + e.getMessage());
         }
     }
 
-    private String buildQuery(Map<String, String> params) {
-        return params.entrySet().stream()
-                .map(e -> percentEncode(e.getKey()) + "=" + percentEncode(e.getValue()))
-                .reduce((a, b) -> a + "&" + b).orElse("");
-    }
+    static class VlOcrRequest {
+        public String model = "qwen-vl-ocr-latest";
+        public Message[] messages;
 
-    private String sign(String query) throws Exception {
-        String stringToSign = "POST&" + percentEncode("/") + "&" + percentEncode(query);
-        String key = accessKeySecret + "&";
-        Mac mac = Mac.getInstance("HmacSHA1");
-        mac.init(new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), "HmacSHA1"));
-        byte[] signData = mac.doFinal(stringToSign.getBytes(StandardCharsets.UTF_8));
-        return Base64.getEncoder().encodeToString(signData);
-    }
+        VlOcrRequest(String base64Image) {
+            this.messages = new Message[]{
+                    new Message(new Content[]{
+                            new ImageContent("data:image/png;base64," + base64Image),
+                            new TextContent("请提取图片中的所有文字内容")
+                    })
+            };
+        }
 
-    private String percentEncode(String value) {
-        try {
-            return URLEncoder.encode(value, StandardCharsets.UTF_8)
-                    .replace("+", "%20")
-                    .replace("*", "%2A")
-                    .replace("%7E", "~");
-        } catch (Exception e) {
-            return value;
+        static class Message {
+            public String role = "user";
+            public Content[] content;
+            Message(Content[] content) { this.content = content; }
+        }
+
+        static class Content {}
+        static class ImageContent extends Content {
+            public String type = "image_url";
+            public ImageUrl image_url;
+            public int min_pixels = 3072;
+            public int max_pixels = 8388608;
+            ImageContent(String url) { this.image_url = new ImageUrl(url); }
+        }
+        static class ImageUrl { public String url; ImageUrl(String url) { this.url = url; } }
+        static class TextContent extends Content {
+            public String type = "text";
+            public String text;
+            TextContent(String text) { this.text = text; }
         }
     }
 }
