@@ -1,1 +1,29 @@
 .worktrees/
+
+# Maven
+target/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Environment
+.env
+.env.local
+
+# Superpowers (brainstorm artifacts)
+.superpowers/
+
+# Mini program
+miniprogram/images/tab-*.png
