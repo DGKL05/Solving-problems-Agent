@@ -1,0 +1,101 @@
+const api = require('../../utils/api');
+const auth = require('../../utils/auth');
+const websocket = require('../../utils/websocket');
+
+Page({
+  data: {
+    messages: [],
+    inputText: '',
+    sessionId: null,
+    showSubjectPicker: false,
+    pendingImagePath: null
+  },
+
+  onLoad() {
+    auth.login(() => {
+      websocket.connect((msg) => {
+        if (msg.type === 'connected') {
+          this.setData({ sessionId: msg.sessionId });
+        } else if (msg.type === 'message') {
+          const messages = this.data.messages;
+          messages.push({ role: 'assistant', content: msg.content, time: new Date() });
+          this.setData({ messages });
+        }
+      });
+    });
+  },
+
+  onUnload() {
+    websocket.close();
+  },
+
+  onInput(e) {
+    this.setData({ inputText: e.detail.value });
+  },
+
+  sendMessage() {
+    const text = this.data.inputText.trim();
+    if (!text) return;
+
+    const messages = this.data.messages;
+    messages.push({ role: 'user', content: text, time: new Date() });
+    this.setData({ messages, inputText: '' });
+
+    websocket.send(text);
+  },
+
+  chooseImage() {
+    wx.chooseMedia({
+      count: 1,
+      mediaType: ['image'],
+      sourceType: ['album', 'camera'],
+      success: (res) => {
+        this.setData({
+          showSubjectPicker: true,
+          pendingImagePath: res.tempFiles[0].tempFilePath
+        });
+      }
+    });
+  },
+
+  onSubjectSelect(e) {
+    const subjectType = e.currentTarget.dataset.type;
+    const filePath = this.data.pendingImagePath;
+    const sessionId = this.data.sessionId;
+
+    this.setData({ showSubjectPicker: false, pendingImagePath: null });
+
+    const messages = this.data.messages;
+    messages.push({ role: 'user', content: '[图片]', time: new Date(), isImage: true });
+    this.setData({ messages });
+
+    wx.showLoading({ title: '识别中...' });
+
+    api.upload(filePath, subjectType, sessionId).then((res) => {
+      wx.hideLoading();
+      if (res.code === 200) {
+        const data = res.data;
+        messages.push({
+          role: 'assistant',
+          content: `已识别题目：\n${data.cleanedText}\n\n正在解题...`,
+          time: new Date()
+        });
+        this.setData({ messages });
+      }
+    }).catch((err) => {
+      wx.hideLoading();
+      wx.showToast({ title: '上传失败', icon: 'error' });
+    });
+  },
+
+  onWebSocketMessage(msg) {
+    const messages = this.data.messages;
+    const last = messages[messages.length - 1];
+    if (last && last.role === 'assistant' && last.streaming) {
+      last.content += msg;
+    } else {
+      messages.push({ role: 'assistant', content: msg, time: new Date(), streaming: true });
+    }
+    this.setData({ messages });
+  }
+});
