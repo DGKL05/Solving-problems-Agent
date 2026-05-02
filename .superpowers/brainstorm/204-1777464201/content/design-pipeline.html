@@ -1,0 +1,67 @@
+<h2>Design Section 4: Image Pipeline</h2>
+<p class="subtitle">Upload → OCR → Clean → Solve</p>
+
+<div class="mockup">
+  <div class="mockup-header">Pipeline Flow</div>
+  <div class="mockup-body" style="padding: 20px;">
+
+    <div style="font-size: 12px; line-height: 2;">
+      <p>小程序拍照/选图 →</p>
+      <p style="margin-left: 20px;">↓ <strong>上传</strong> → Spring Boot 接收 → 存入 MongoDB (GridFS) → 返回 imageId</p>
+      <p style="margin-left: 20px;">↓ <strong>阿里云OCR</strong> → 异步回调 / 同步等待结果 → 获取原始文本</p>
+      <p style="margin-left: 20px;">↓ <strong>文本清洗</strong> → 去除噪声行 → 识别题目文本段 → 保留公式/代码格式</p>
+      <p style="margin-left: 20px;">↓ <strong>Qwen-Max</strong> → 按 Subject 调用对应 prompt 解题</p>
+      <p style="margin-left: 20px;">↓ <strong>返回小程序</strong> → 解答 + 代码（如有）</p>
+    </div>
+
+    <div class="section" style="margin-top: 20px;">
+      <h3>技术要点</h3>
+      <div style="display: flex; gap: 12px;">
+        <div class="mock-content" style="flex:1; padding: 10px; border: 1px solid #4A90D9; border-radius: 8px; background: #f0f7ff;">
+          <div class="label" style="color: #4A90D9;">上传</div>
+          <p style="font-size: 12px;">小程序 wx.uploadFile<br>→ 后端 MultipartFile<br>→ MongoDB GridFS</p>
+        </div>
+        <div class="mock-content" style="flex:1; padding: 10px; border: 1px solid #E6A817; border-radius: 8px; background: #fffbf0;">
+          <div class="label" style="color: #E6A817;">OCR</div>
+          <p style="font-size: 12px;">阿里云 OCR API<br>→ 识别文字/公式<br>→ 返回带坐标的文本段</p>
+        </div>
+        <div class="mock-content" style="flex:1; padding: 10px; border: 1px solid #28A745; border-radius: 8px; background: #f0fff4;">
+          <div class="label" style="color: #28A745;">清洗</div>
+          <p style="font-size: 12px;">去除页眉页脚<br>合并文本段落<br>保留代码缩进</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="section" style="margin-top: 20px;">
+      <h3>异常处理</h3>
+      <div style="font-size: 12px;">
+        <ul>
+          <li><strong>OCR识别率低:</strong> 返回原文图片 + 部分文本，让模型尝试推断</li>
+          <li><strong>图片模糊:</strong> 提示用户重拍，建议保持光线充足</li>
+          <li><strong>多页题目:</strong> 目前按单图处理，后续支持批量</li>
+          <li><strong>超时:</strong> 异步处理 + 轮询结果</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="section" style="margin-top: 20px;">
+      <h3>subject_type 选择 UI</h3>
+      <p style="font-size: 12px;">小程序端：拍照/选图后弹出选择器，三个大图标按钮</p>
+      <div style="display: flex; gap: 16px; justify-content: center; margin-top: 8px;">
+        <div style="border: 2px solid #4A90D9; border-radius: 12px; padding: 16px 24px; text-align: center; background: #f0f7ff;">
+          <div style="font-size: 24px; margin-bottom: 4px;">{ }</div>
+          <div style="font-weight: bold;">ACM 算法</div>
+        </div>
+        <div style="border: 2px solid #E6A817; border-radius: 12px; padding: 16px 24px; text-align: center; background: #fffbf0;">
+          <div style="font-size: 24px; margin-bottom: 4px;">∫</div>
+          <div style="font-weight: bold;">高等数学</div>
+        </div>
+        <div style="border: 2px solid #28A745; border-radius: 12px; padding: 16px 24px; text-align: center; background: #f0fff4;">
+          <div style="font-size: 24px; margin-bottom: 4px;">⚙</div>
+          <div style="font-weight: bold;">考研408</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

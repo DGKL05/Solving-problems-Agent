@@ -1,0 +1,74 @@
+<h2>Design Section 2: Agent Core</h2>
+<p class="subtitle">LangChain Tool-Calling with Qwen Function Calling</p>
+
+<div class="mockup">
+  <div class="mockup-header">Agent Architecture</div>
+  <div class="mockup-body" style="padding: 20px;">
+    <div class="section">
+      <h3>Tool Definitions</h3>
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+
+        <div class="mock-content" style="padding: 8px; border: 1px solid #4A90D9; border-radius: 6px;">
+          <div class="label" style="color: #4A90D9;">solve_problem</div>
+          <p style="font-size: 12px; margin: 2px 0;"><strong>Params:</strong> imageUrl, subjectType (ACM/MATH/408)</p>
+          <p style="font-size: 12px; margin: 2px 0;"><strong>Flow:</strong> 调用 image-pipeline OCR → 清洗文本 → Qwen-Max 解题</p>
+        </div>
+
+        <div class="mock-content" style="padding: 8px; border: 1px solid #E6A817; border-radius: 6px;">
+          <div class="label" style="color: #E6A817;">add_to_mistakes</div>
+          <p style="font-size: 12px; margin: 2px 0;"><strong>Params:</strong> problemId, tags[], errorType, notes</p>
+          <p style="font-size: 12px; margin: 2px 0;"><strong>Flow:</strong> 保存到 MySQL mistake_collections 表</p>
+        </div>
+
+        <div class="mock-content" style="padding: 8px; border: 1px solid #28A745; border-radius: 6px;">
+          <div class="label" style="color: #28A745;">query_mistakes</div>
+          <p style="font-size: 12px; margin: 2px 0;"><strong>Params:</strong> tag, dateRange, page, limit</p>
+          <p style="font-size: 12px; margin: 2px 0;"><strong>Flow:</strong> 从 MySQL 查询错题列表 + 统计</p>
+        </div>
+
+        <div class="mock-content" style="padding: 8px; border: 1px solid #6F42C1; border-radius: 6px;">
+          <div class="label" style="color: #6F42C1;">recommend_similar</div>
+          <p style="font-size: 12px; margin: 2px 0;"><strong>Params:</strong> problemId, count</p>
+          <p style="font-size: 12px; margin: 2px 0;"><strong>Flow:</strong> 基于标签匹配推荐同类错题</p>
+        </div>
+
+        <div class="mock-content" style="padding: 8px; border: 1px solid #D94A4A; border-radius: 6px;">
+          <div class="label" style="color: #D94A4A;">explain_concept</div>
+          <p style="font-size: 12px; margin: 2px 0;"><strong>Params:</strong> concept, subjectType</p>
+          <p style="font-size: 12px; margin: 2px 0;"><strong>Flow:</strong> Qwen-Max 直接解释概念 + 举例</p>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="section" style="margin-top: 24px;">
+      <h3>Prompt 策略</h3>
+      <div style="display: flex; gap: 12px; margin-top: 8px;">
+        <div class="mock-content" style="flex:1; padding: 10px; border: 1px solid #4A90D9; border-radius: 8px; background: #f0f7ff; text-align: center;">
+          <div class="label" style="color: #4A90D9;">System Prompt</div>
+          <p style="font-size: 12px; margin: 4px 0;">Agent 身份设定<br>工具描述<br>记忆格式指令</p>
+        </div>
+        <div class="mock-content" style="flex:1; padding: 10px; border: 1px solid #E6A817; border-radius: 8px; background: #fffbf0; text-align: center;">
+          <div class="label" style="color: #E6A817;">Subject Prompts</div>
+          <p style="font-size: 12px; margin: 4px 0;">ACM: 代码+复杂度<br>Math: 分步推导<br>408: 概念+计算+画图</p>
+        </div>
+        <div class="mock-content" style="flex:1; padding: 10px; border: 1px solid #28A745; border-radius: 8px; background: #f0fff4; text-align: center;">
+          <div class="label" style="color: #28A745;">Memory</div>
+          <p style="font-size: 12px; margin: 4px 0;">Redis: 当前会话全文<br>MongoDB: 历史摘要</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="section" style="margin-top: 24px;">
+      <h3>调用流程</h3>
+      <div style="font-size: 12px; line-height: 1.8;">
+        <p><strong>用户:</strong> "帮我解这道题" (拍照上传图片)</p>
+        <p><strong>Agent:</strong> 判断subjectType → call solve_problem → Qwen-Max 根据subject prompt解题 → 返回结果</p>
+        <p style="margin-top: 8px;"><strong>用户:</strong> "加入错题集"</p>
+        <p><strong>Agent:</strong> Qwen function calling 识别意图 → call add_to_mistakes → 确认保存成功 + 标签建议</p>
+        <p style="margin-top: 8px;"><strong>用户:</strong> "昨天做错的那几道题"</p>
+        <p><strong>Agent:</strong> 从 Redis 获取会话上下文 → call query_mistakes(yesterday) → 返回列表</p>
+      </div>
+    </div>
+  </div>
+</div>

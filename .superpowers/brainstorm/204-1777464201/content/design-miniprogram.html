@@ -1,0 +1,91 @@
+<h2>Design Section 5: WeChat Mini Program</h2>
+<p class="subtitle">Pages, Navigation & Key Interactions</p>
+
+<div class="mockup">
+  <div class="mockup-header">Page Structure</div>
+  <div class="mockup-body" style="padding: 20px;">
+
+    <div style="display: flex; gap: 20px; justify-content: center;">
+      <div style="border: 1px solid #ddd; border-radius: 12px; padding: 16px; width: 180px; text-align: center;">
+        <div class="label">首页 / 会话列表</div>
+        <div style="border: 1px dashed #ccc; border-radius: 8px; padding: 8px; margin-top: 8px; min-height: 100px;">
+          <div style="font-size: 11px; padding: 4px; border-bottom: 1px solid #eee;">会话 1: DP专题</div>
+          <div style="font-size: 11px; padding: 4px; border-bottom: 1px solid #eee;">会话 2: 408真题</div>
+          <div style="font-size: 11px; padding: 4px;">+ 新对话</div>
+        </div>
+        <div style="font-size: 11px; margin-top: 8px; color: #999;">导航到会话</div>
+      </div>
+
+      <div style="width: 30px; display: flex; align-items: center; justify-content: center;">
+        <span style="font-size: 24px; color: #ccc;">→</span>
+      </div>
+
+      <div style="border: 2px solid #4A90D9; border-radius: 12px; padding: 16px; width: 220px; text-align: center;">
+        <div class="label" style="color: #4A90D9;">聊天页面 (核心)</div>
+        <div style="border: 1px dashed #4A90D9; border-radius: 8px; padding: 8px; margin-top: 8px; min-height: 150px;">
+          <div style="font-size: 11px; background: #e8f4fd; padding: 6px; border-radius: 6px; margin: 4px 0; text-align: left; width: 70%;">
+            [图片] 这道DP题怎么做？
+          </div>
+          <div style="font-size: 11px; background: #f0f7ff; padding: 6px; border-radius: 6px; margin: 4px 0; text-align: right; width: 90%; margin-left: auto;">
+            这是典型的 0-1背包变形... 代码: ...
+          </div>
+          <div style="font-size: 11px; background: #e8f4fd; padding: 6px; border-radius: 6px; margin: 4px 0; text-align: left; width: 70%;">
+            加入错题集
+          </div>
+          <div style="font-size: 11px; background: #f0f7ff; padding: 6px; border-radius: 6px; margin: 4px 0; text-align: right; width: 90%; margin-left: auto;">
+            已加入错题集！<br>建议标签: DP, 背包
+          </div>
+        </div>
+        <div style="display: flex; gap: 4px; margin-top: 8px; justify-content: center;">
+          <div style="border: 1px solid #4A90D9; border-radius: 20px; padding: 4px 12px; font-size: 11px;">+ 拍照</div>
+          <div style="border: 1px solid #4A90D9; border-radius: 20px; padding: 4px 12px; font-size: 11px;">图库</div>
+          <div style="background: #4A90D9; border-radius: 20px; padding: 4px 12px; font-size: 11px; color: white;">发送</div>
+        </div>
+      </div>
+
+      <div style="width: 30px; display: flex; align-items: center; justify-content: center;">
+        <span style="font-size: 24px; color: #ccc;">→</span>
+      </div>
+
+      <div style="border: 1px solid #ddd; border-radius: 12px; padding: 16px; width: 180px; text-align: center;">
+        <div class="label">错题集</div>
+        <div style="border: 1px dashed #ccc; border-radius: 8px; padding: 8px; margin-top: 8px; min-height: 100px;">
+          <div style="font-size: 11px; padding: 4px; border-bottom: 1px solid #eee;">
+            <strong>DP</strong> (3题)
+          </div>
+          <div style="font-size: 11px; padding: 4px; border-bottom: 1px solid #eee;">
+            <strong>计组</strong> (2题)
+          </div>
+          <div style="font-size: 11px; padding: 4px;">
+            <strong>高数</strong> (1题)
+          </div>
+        </div>
+        <div style="font-size: 11px; margin-top: 8px; color: #999;">按标签筛选</div>
+      </div>
+    </div>
+
+    <div class="section" style="margin-top: 24px;">
+      <h3>关键交互</h3>
+      <div style="display: flex; gap: 12px; font-size: 12px;">
+        <div class="mock-content" style="flex:1; padding: 10px; border: 1px dashed #999; border-radius: 8px;">
+          <div class="label">拍照上传</div>
+          <p>wx.chooseMedia → 选择照片 → 弹出科目选择 → 上传 → 进入聊天</p>
+        </div>
+        <div class="mock-content" style="flex:1; padding: 10px; border: 1px dashed #999; border-radius: 8px;">
+          <div class="label">Agent 命令</div>
+          <p>聊天输入框 → 文字消息 → WebSocket → Agent处理 → 流式响应</p>
+        </div>
+        <div class="mock-content" style="flex:1; padding: 10px; border: 1px dashed #999; border-radius: 8px;">
+          <div class="label">错题集入口</div>
+          <p>底部 Tab 栏 → 错题集页面 → 标签分组 → 点击查看原题+解答</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="section" style="margin-top: 20px;">
+      <h3>底部 Tab 导航</h3>
+      <p style="font-size: 12px;">聊天 | 错题集 | 我的</p>
+    </div>
+
+  </div>
+</div>

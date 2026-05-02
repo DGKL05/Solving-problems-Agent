@@ -1,0 +1,76 @@
+<h2>Architecture Overview — Agent-First AI Problem Solver</h2>
+<p class="subtitle">High-level system structure. This will guide our detailed design decisions.</p>
+
+<div class="mockup">
+  <div class="mockup-header">System Architecture</div>
+  <div class="mockup-body" style="padding: 20px;">
+    <div class="section">
+      <h3>WeChat Mini Program</h3>
+      <div style="display: flex; gap: 12px; margin-top: 8px;">
+        <div class="mock-content" style="flex:1; text-align: center; padding: 16px; border: 1px dashed #999; border-radius: 8px;">
+          <div class="label">Camera</div>
+          <p style="font-size: 12px; margin: 4px 0;">Photo / Gallery Upload</p>
+        </div>
+        <div class="mock-content" style="flex:1; text-align: center; padding: 16px; border: 1px dashed #999; border-radius: 8px;">
+          <div class="label">Chat</div>
+          <p style="font-size: 12px; margin: 4px 0;">Command-Driven Agent</p>
+        </div>
+        <div class="mock-content" style="flex:1; text-align: center; padding: 16px; border: 1px dashed #999; border-radius: 8px;">
+          <div class="label">错题集</div>
+          <p style="font-size: 12px; margin: 4px 0;">Flat Collection + Tags</p>
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align: center; font-size: 24px; color: #666; margin: 8px 0;">↓ HTTP / WebSocket</div>
+
+    <div class="section">
+      <h3>Spring Boot Backend</h3>
+      <div style="display: flex; gap: 12px; margin-top: 8px;">
+        <div class="mock-content" style="flex:1; text-align: center; padding: 16px; border: 2px solid #4A90D9; border-radius: 8px; background: #f0f7ff;">
+          <div class="label" style="color: #4A90D9;">Agent Core</div>
+          <p style="font-size: 12px; margin: 4px 0;">LangChain + Tool Calls</p>
+          <p style="font-size: 11px; color: #666;">"加入错题集" → tool_call</p>
+          <p style="font-size: 11px; color: #666;">"解题" → LLM pipeline</p>
+        </div>
+        <div class="mock-content" style="flex:1; text-align: center; padding: 16px; border: 1px dashed #999; border-radius: 8px;">
+          <div class="label">Image Pipeline</div>
+          <p style="font-size: 12px; margin: 4px 0;">阿里云 OCR → Text</p>
+        </div>
+        <div class="mock-content" style="flex:1; text-align: center; padding: 16px; border: 1px dashed #999; border-radius: 8px;">
+          <div class="label">LLM Gateway</div>
+          <p style="font-size: 12px; margin: 4px 0;">Qwen-Max / Plus</p>
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align: center; font-size: 24px; color: #666; margin: 8px 0;">↓</div>
+
+    <div class="section">
+      <h3>Data Layer</h3>
+      <div style="display: flex; gap: 12px; margin-top: 8px;">
+        <div class="mock-content" style="flex:1; text-align: center; padding: 16px; border: 1px dashed #999; border-radius: 8px;">
+          <div class="label">MySQL</div>
+          <p style="font-size: 12px; margin: 4px 0;">Users, Problems, Tags, Collections</p>
+        </div>
+        <div class="mock-content" style="flex:1; text-align: center; padding: 16px; border: 1px dashed #999; border-radius: 8px;">
+          <div class="label">MongoDB</div>
+          <p style="font-size: 12px; margin: 4px 0;">Images, Chat Logs, Agent Memory</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="pros-cons">
+  <div class="pros">
+    <h4>Key Decisions Made</h4>
+    <ul>
+      <li>Agent-first, not solver-first — conversational commands are the core UX</li>
+      <li>Command-driven: "加入错题集", "复习", "类似题目" via LangChain tools</li>
+      <li>Qwen-Max + 阿里云 OCR — two-step pipeline, not multimodal</li>
+      <li>Flat 错题集 with tags (subject, difficulty, error_type, timestamp)</li>
+      <li>ACM + Math focus — code generation + algorithm analysis capability</li>
+    </ul>
+  </div>
+</div>

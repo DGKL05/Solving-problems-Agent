@@ -1,0 +1,75 @@
+<h2>Design Section 1: System Architecture</h2>
+<p class="subtitle">Spring Boot Modular Monolith — LangChain Tool-Calling</p>
+
+<div class="mockup">
+  <div class="mockup-header">Module Structure</div>
+  <div class="mockup-body" style="padding: 20px;">
+    <div class="section">
+      <h3>agent-dome (父 POM)</h3>
+      <div style="display: flex; flex-direction: column; gap: 8px; margin: 12px 0;">
+        <div class="mock-content" style="padding: 10px; border: 2px solid #4A90D9; border-radius: 8px; background: #f0f7ff;">
+          <div class="label" style="color: #4A90D9;">agent-core</div>
+          <p style="font-size: 12px; margin: 4px 0;">LangChain 工具定义 + Function Calling 编排 + 对话管理</p>
+        </div>
+        <div class="mock-content" style="padding: 10px; border: 1px dashed #999; border-radius: 8px;">
+          <div class="label">image-pipeline</div>
+          <p style="font-size: 12px; margin: 4px 0;">图片上传 → 阿里云OCR → 文本清洗 → 结构提取</p>
+        </div>
+        <div class="mock-content" style="padding: 10px; border: 1px dashed #999; border-radius: 8px;">
+          <div class="label">mistake-service</div>
+          <p style="font-size: 12px; margin: 4px 0;">错题集 CRUD + 标签管理 + 查询推荐</p>
+        </div>
+        <div class="mock-content" style="padding: 10px; border: 1px dashed #999; border-radius: 8px;">
+          <div class="label">user-service</div>
+          <p style="font-size: 12px; margin: 4px 0;">微信 OpenID 认证 + 用户资料</p>
+        </div>
+        <div class="mock-content" style="padding: 10px; border: 1px dashed #999; border-radius: 8px;">
+          <div class="label">gateway (API)</div>
+          <p style="font-size: 12px; margin: 4px 0;">统一 REST API + WebSocket 入口</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>数据层分配</h3>
+      <div style="display: flex; gap: 16px;">
+        <div class="mock-content" style="flex:1; padding: 10px; border: 1px solid #E6A817; border-radius: 8px; background: #fffbf0;">
+          <div class="label" style="color: #E6A817;">MySQL</div>
+          <ul style="font-size: 12px; margin: 4px 0; padding-left: 16px;">
+            <li>users</li>
+            <li>problems (题目)</li>
+            <li>mistake_collections</li>
+            <li>tags</li>
+            <li>problem_tags</li>
+          </ul>
+        </div>
+        <div class="mock-content" style="flex:1; padding: 10px; border: 1px solid #28A745; border-radius: 8px; background: #f0fff4;">
+          <div class="label" style="color: #28A745;">Redis</div>
+          <ul style="font-size: 12px; margin: 4px 0; padding-left: 16px;">
+            <li>Active session memory (TTL)</li>
+            <li>Conversation context</li>
+            <li>Rate limiting</li>
+          </ul>
+        </div>
+        <div class="mock-content" style="flex:1; padding: 10px; border: 1px solid #6F42C1; border-radius: 8px; background: #f8f0ff;">
+          <div class="label" style="color: #6F42C1;">MongoDB</div>
+          <ul style="font-size: 12px; margin: 4px 0; padding-left: 16px;">
+            <li>Original images</li>
+            <li>OCR raw results</li>
+            <li>Historical chat logs</li>
+            <li>Session summaries</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>关键流程</h3>
+      <div style="font-size: 12px; line-height: 1.8;">
+        <p><strong>1. 拍照解题:</strong> 小程序拍照 → 上传到后端 → image-pipeline OCR → agent-core 调用 Qwen-Max 解题 → 返回结果到小程序</p>
+        <p><strong>2. 加入错题集:</strong> 用户说"加入错题集" → LangChain function calling 触发 add_to_mistakes → mistake-service 保存到 MySQL</p>
+        <p><strong>3. 跨会话记忆:</strong> 会话结束 → agent-core 生成摘要 → 存入 MongoDB → 下次会话加载摘要到 Redis</p>
+      </div>
+    </div>
+  </div>
+</div>
