@@ -17,6 +17,14 @@
             <artifactId>common</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.agentdome</groupId>
+            <artifactId>mistake-service</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.agentdome</groupId>
+            <artifactId>image-pipeline</artifactId>
+        </dependency>
+        <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j</artifactId>
         </dependency>
