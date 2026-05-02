@@ -1,0 +1,52 @@
+spring:
+  application:
+    name: agent-dome
+  profiles:
+    active: dev
+  datasource:
+    url: jdbc:mysql://${MYSQL_HOST:localhost}:3306/agent_dome?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+    username: ${MYSQL_USER:root}
+    password: ${MYSQL_PASSWORD:}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
+  data:
+    mongodb:
+      uri: mongodb://${MONGO_HOST:localhost}:27017/agent_dome
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: 6379
+      timeout: 3000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+
+server:
+  port: ${SERVER_PORT:8080}
+
+aliyun:
+  dashscope:
+    api-key: ${DASHSCOPE_API_KEY:}
+  ocr:
+    access-key-id: ${ALIYUN_ACCESS_KEY_ID:}
+    access-key-secret: ${ALIYUN_ACCESS_KEY_SECRET:}
+
+wechat:
+  app-id: ${WECHAT_APP_ID:}
+  app-secret: ${WECHAT_APP_SECRET:}
+
+jwt:
+  secret: ${JWT_SECRET:change-me-in-production}
+  expiration-ms: 604800000
+
+logging:
+  level:
+    com.agentdome: DEBUG
