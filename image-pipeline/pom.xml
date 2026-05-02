@@ -16,16 +16,6 @@
             <groupId>com.agentdome</groupId>
             <artifactId>common</artifactId>
         </dependency>
-        <!-- Not in Maven Central. Install locally:
-             mvn install:install-file -Dfile=ocr_api20210707.jar
-               -DgroupId=com.aliyun -DartifactId=ocr_api20210707
-               -Dversion=1.0.0 -Dpackaging=jar -->
-        <dependency>
-            <groupId>com.aliyun</groupId>
-            <artifactId>ocr_api20210707</artifactId>
-            <version>1.0.0</version>
-            <scope>provided</scope>
-        </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
