@@ -1,0 +1,16 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/agent_dome?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+    username: root
+    password: root
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/agent_dome
+    redis:
+      host: localhost
+      port: 6379
+
+logging:
+  level:
+    com.agentdome: DEBUG
+    org.springframework.web: DEBUG
