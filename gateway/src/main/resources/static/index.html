@@ -396,6 +396,14 @@ var $=function(s){return document.querySelector(s);};
 var $$=function(s){return document.querySelectorAll(s);};
 var _streamText='';
 
+// ── Auto-restore session on page load ──
+(function(){
+  var t=localStorage.getItem('ad_token');
+  var u=localStorage.getItem('ad_uid');
+  var n=localStorage.getItem('ad_nick');
+  if(t&&u&&n){enterApp(t,parseInt(u),n)}
+})();
+
 // ── Marked + MathJax ──
 if(typeof marked!=='undefined'){
   marked.setOptions({highlight:function(code,lang){if(lang&&hljs.getLanguage(lang))return hljs.highlight(code,{language:lang}).value;return hljs.highlightAuto(code).value;},breaks:true,gfm:true});
@@ -456,6 +464,7 @@ async function doRegister(){
 }
 function doLogout(){
   if(S.ws)S.ws.close();
+  localStorage.removeItem('ad_token');localStorage.removeItem('ad_uid');localStorage.removeItem('ad_nick');
   S={token:null,userId:null,nick:'',sessionId:null,ws:null,subject:'ACM',pendingFile:null,currentTab:'solve'};
   $('#mainApp').classList.add('hidden');$('#loginScreen').classList.remove('hidden');
   $('#chatArea').innerHTML='<div class="empty-state" id="emptyState"><div class="empty-icon">◈</div><div class="empty-title">AgentDome 解题助手</div><div class="empty-sub">上传题目图片，AI 实时流式输出解答<br>支持追问和讨论</div><button class="upload-hint-btn" onclick="document.getElementById(\'fileInput\').click()">📷 拍照/上传题目</button></div>';
@@ -464,6 +473,7 @@ function doLogout(){
 function showError(m){var e=$('#loginError');e.textContent=m;e.classList.remove('hidden');setTimeout(function(){e.classList.add('hidden')},3000)}
 function enterApp(t,u,n){
   S.token=t;S.userId=u;S.nick=n;
+  localStorage.setItem('ad_token',t);localStorage.setItem('ad_uid',u);localStorage.setItem('ad_nick',n);
   $('#loginScreen').classList.add('hidden');$('#mainApp').classList.remove('hidden');
   $('#userName').textContent=n;connectWS();
 }

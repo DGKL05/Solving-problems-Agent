@@ -20,6 +20,7 @@ public class AgentService {
     private final QueryMistakesTool queryMistakesTool;
     private final RecommendSimilarTool recommendSimilarTool;
     private final ExplainConceptTool explainConceptTool;
+    private final DeleteMistakeTool deleteMistakeTool;
     private final UserProblemTracker problemTracker;
 
     public AgentService(PromptTemplateManager promptManager,
@@ -30,6 +31,7 @@ public class AgentService {
                         QueryMistakesTool queryMistakesTool,
                         RecommendSimilarTool recommendSimilarTool,
                         ExplainConceptTool explainConceptTool,
+                        DeleteMistakeTool deleteMistakeTool,
                         UserProblemTracker problemTracker) {
         this.promptManager = promptManager;
         this.memoryManager = memoryManager;
@@ -39,6 +41,7 @@ public class AgentService {
         this.queryMistakesTool = queryMistakesTool;
         this.recommendSimilarTool = recommendSimilarTool;
         this.explainConceptTool = explainConceptTool;
+        this.deleteMistakeTool = deleteMistakeTool;
         this.problemTracker = problemTracker;
     }
 
@@ -63,7 +66,14 @@ public class AgentService {
         // For MVP: intent-based dispatch matching against tool triggers
         String response;
         if (userMessage.contains("错题") || userMessage.contains("mistake")) {
-            if (userMessage.contains("加入") || userMessage.contains("添加")) {
+            if (userMessage.contains("删除") || userMessage.contains("移除")) {
+                int idx = extractNumber(userMessage);
+                if (idx > 0) {
+                    response = deleteMistakeTool.deleteMistakeByIndex(userId, idx);
+                } else {
+                    response = "请告诉我你想删除第几道错题，例如：删除错题本中第3个错题";
+                }
+            } else if (userMessage.contains("加入") || userMessage.contains("添加")) {
                 Long pid = problemTracker.getLastProblem(userId);
                 if (pid == null) {
                     response = "请先解答一道题目，然后再加入错题本。";
@@ -85,5 +95,20 @@ public class AgentService {
             memoryManager.appendMessage(sessionId, "assistant", response);
         }
         return response;
+    }
+
+    private int extractNumber(String text) {
+        // Extract Chinese or Arabic number: 第3个, 第1题, 第三个, 第一个, etc.
+        String[] cnNums = {"一","二","两","三","四","五","六","七","八","九","十"};
+        for (int i = 0; i < cnNums.length; i++) {
+            if (text.contains("第" + cnNums[i])) return i + 1;
+        }
+        if (text.contains("第十")) { if(text.contains("十一")) return 11; return 10; }
+        // Try Arabic number: 第3个, 删除第3
+        java.util.regex.Matcher m = java.util.regex.Pattern.compile("第\\s*(\\d+)\\s*(个|道|题|条)").matcher(text);
+        if (m.find()) {
+            try { return Integer.parseInt(m.group(1)); } catch (NumberFormatException e) {}
+        }
+        return -1;
     }
 }

@@ -84,4 +84,13 @@ public class MistakeService {
     public List<MistakeDTO> queryMistakes(Long userId, String tag, LocalDateTime start, LocalDateTime end) {
         return getUserMistakes(userId);
     }
+
+    public void deleteMistake(Long userId, Long mistakeId) {
+        MistakeCollection mistake = mistakeRepo.findById(mistakeId)
+                .orElseThrow(() -> new BusinessException("错题不存在"));
+        if (!mistake.getUserId().equals(userId)) {
+            throw new BusinessException("无权删除");
+        }
+        mistakeRepo.delete(mistake);
+    }
 }

@@ -23,4 +23,11 @@ public class MistakeController {
         Long userId = (Long) request.getAttribute("userId");
         return ResponseEntity.ok(ApiResponse.ok(mistakeService.getUserMistakes(userId)));
     }
+
+    @DeleteMapping("/mistakes/{id}")
+    public ResponseEntity<ApiResponse<String>> deleteMistake(@PathVariable Long id, HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute("userId");
+        mistakeService.deleteMistake(userId, id);
+        return ResponseEntity.ok(ApiResponse.ok("已删除"));
+    }
 }
