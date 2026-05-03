@@ -117,37 +117,14 @@ input[type=file]{display:none}
 /* ═══════ SOLVE PANEL ═══════ */
 #solvePanel{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0}
 
-/* Upload card (collapsed by default after first use) */
-.upload-card{
-  background:var(--white);border:1px solid var(--border);border-radius:14px;
-  box-shadow:var(--shadow);padding:1.5rem 1.8rem;margin-bottom:.8rem;flex-shrink:0;
-}
-.upload-card.collapsed{padding:.6rem 1.2rem;cursor:pointer}
-.upload-card.collapsed .upload-body{display:none}
-.upload-card-label{
-  font-family:'JetBrains Mono',monospace;font-size:.62rem;text-transform:uppercase;
-  letter-spacing:.15em;color:var(--accent);margin-bottom:.6rem;
-  display:flex;align-items:center;justify-content:space-between;
-}
-.upload-card.collapsed .upload-card-label{margin-bottom:0}
-.upload-card-toggle{font-size:.75rem;cursor:pointer;color:var(--ink2)}
-.upload-card.collapsed .upload-card-toggle::after{content:' ▸ 展开'}
-.upload-card-toggle::after{content:' ▾ 收起'}
-.upload-zone{
-  border:2px dashed var(--border);border-radius:12px;
-  padding:2rem 1.5rem;text-align:center;cursor:pointer;transition:all .25s;
-  margin-bottom:1rem;background:var(--cream);
-}
-.upload-zone:hover,.upload-zone.drag-over{
-  border-color:var(--accent);background:var(--accent-lt);
-}
-.upload-zone .uz-icon{font-size:2.2rem;margin-bottom:.2rem;transition:.2s}
-.upload-zone:hover .uz-icon{transform:scale(1.08)}
-.upload-zone .uz-text{font-size:.9rem;color:var(--ink2)}
-.upload-zone .uz-hint{font-size:.7rem;color:var(--ink3);margin-top:.25rem}
-.upload-zone .preview{max-width:100%;max-height:160px;margin-top:.6rem;display:none;border-radius:10px;border:1px solid var(--border)}
-.upload-zone .preview.show{display:block}
+/* Chat messages area */
+.chat-area{flex:1;overflow-y:auto;padding-right:.3rem;display:flex;flex-direction:column;gap:1.5rem;padding-bottom:.5rem}
+.chat-area .empty-state{text-align:center;padding:4rem 2rem;margin:auto}
+.empty-icon{font-size:2.8rem;margin-bottom:.6rem;opacity:.2}
+.empty-title{font-size:1.1rem;color:var(--ink2);font-family:'Playfair Display',Georgia,serif}
+.empty-sub{font-size:.82rem;color:var(--ink3);margin-top:.3rem;line-height:1.7}
 
+/* Subject chips */
 .subject-chips{display:flex;gap:.4rem;flex-wrap:wrap}
 .chip{
   padding:.4rem .9rem;font-size:.78rem;font-family:'JetBrains Mono',monospace;
@@ -157,29 +134,53 @@ input[type=file]{display:none}
 .chip:hover{border-color:var(--accent);color:var(--accent)}
 .chip.active{background:var(--accent-lt);border-color:var(--accent);color:var(--accent)}
 
-/* Chat messages area */
-.chat-area{flex:1;overflow-y:auto;padding-right:.3rem;display:flex;flex-direction:column;gap:1.5rem;padding-bottom:.5rem}
-.chat-area .empty-state{text-align:center;padding:4rem 2rem;margin:auto}
-.empty-icon{font-size:2.8rem;margin-bottom:.6rem;opacity:.2}
-.empty-title{font-size:1.1rem;color:var(--ink2);font-family:'Playfair Display',Georgia,serif}
-.empty-sub{font-size:.82rem;color:var(--ink3);margin-top:.3rem;line-height:1.7}
+/* Image preview bar above input */
+.img-preview-bar{
+  display:none;align-items:center;gap:.8rem;padding:.6rem 0;
+  border-top:1px solid var(--border);flex-shrink:0;
+}
+.img-preview-bar.show{display:flex}
+.img-preview-thumb{
+  width:72px;height:56px;border-radius:8px;object-fit:cover;border:1px solid var(--border);
+}
+.img-preview-name{font-size:.8rem;color:var(--ink2);flex:1}
+.img-preview-close{
+  cursor:pointer;font-size:1rem;color:var(--ink3);padding:.2rem;
+  border:none;background:none;font-family:'JetBrains Mono',monospace;
+}
+.img-preview-close:hover{color:var(--red)}
 
 /* Chat input bar */
 .chat-input-bar{
-  display:flex;gap:.5rem;padding:.6rem 0 0;flex-shrink:0;border-top:1px solid var(--border);margin-top:.5rem;
+  display:flex;gap:.4rem;padding:.6rem 0 0;flex-shrink:0;border-top:1px solid var(--border);margin-top:.5rem;align-items:flex-end;
 }
+.chat-attach{
+  width:42px;height:42px;display:flex;align-items:center;justify-content:center;
+  background:var(--cream);border:1px solid var(--border);border-radius:10px;
+  cursor:pointer;font-size:1.2rem;color:var(--ink2);transition:.2s;flex-shrink:0;
+}
+.chat-attach:hover{background:var(--accent-lt);border-color:var(--accent);color:var(--accent)}
+.chat-attach.has-file{background:var(--accent-lt);border-color:var(--accent);color:var(--accent)}
 .chat-input{
   flex:1;padding:.7rem 1rem;font-size:.9rem;font-family:'Source Serif 4',Georgia,serif;
   background:var(--white);border:1px solid var(--border);border-radius:10px;
-  color:var(--ink);outline:none;resize:none;min-height:44px;max-height:80px;
+  color:var(--ink);outline:none;resize:none;min-height:42px;max-height:80px;
 }
 .chat-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(44,107,174,.08)}
 .chat-input::placeholder{color:var(--ink3)}
 .chat-send{
-  padding:.7rem 1.4rem;background:var(--accent);color:#fff;border:none;border-radius:10px;
-  font-family:'Source Serif 4',Georgia,serif;font-size:.9rem;cursor:pointer;transition:.2s;white-space:nowrap;
+  padding:.7rem 1.2rem;background:var(--accent);color:#fff;border:none;border-radius:10px;
+  font-family:'Source Serif 4',Georgia,serif;font-size:.9rem;cursor:pointer;transition:.2s;white-space:nowrap;flex-shrink:0;
 }
 .chat-send:hover{background:#255a94}
+
+/* Empty state with upload hint */
+.empty-state .upload-hint-btn{
+  display:inline-block;margin-top:.8rem;padding:.5rem 1.5rem;
+  background:var(--accent);color:#fff;border:none;border-radius:8px;
+  font-family:'Source Serif 4',Georgia,serif;font-size:.85rem;cursor:pointer;
+}
+.empty-state .upload-hint-btn:hover{background:#255a94}
 
 /* Messages */
 .msg{animation:fadeIn .4s ease-out}
@@ -323,38 +324,35 @@ mjx-container[jax=CHTML][display=true]{margin:.7em 0;overflow-x:auto}
 
 <!-- ═══ SOLVE PANEL ═══ -->
 <div id="solvePanel">
-  <div class="upload-card" id="uploadCard">
-    <div class="upload-card-label">
-      <span>UPLOAD PROBLEM</span>
-      <span class="upload-card-toggle" id="uploadToggle" onclick="toggleUpload(event)"></span>
-    </div>
-    <div class="upload-body">
-      <div class="upload-zone" id="uploadZone">
-        <div class="uz-icon" id="uploadIcon">⊞</div>
-        <div class="uz-text" id="uploadText">拖拽题目图片，或点击此处选择文件</div>
-        <div class="uz-hint">PNG / JPG，建议清晰截图</div>
-        <img class="preview" id="previewImg">
-      </div>
-      <input type="file" id="fileInput" accept="image/*">
-      <div class="subject-chips">
-        <div class="chip active" data-subject="ACM">⊿ 算法</div>
-        <div class="chip" data-subject="MATH">∫ 数学</div>
-        <div class="chip" data-subject="CS408">⊕ 408</div>
-      </div>
+  <input type="file" id="fileInput" accept="image/*">
+
+  <div class="chat-area" id="chatArea"
+       ondragover="event.preventDefault();this.style.background='var(--accent-lt)'"
+       ondragleave="this.style.background=''"
+       ondrop="event.preventDefault();this.style.background='';if(event.dataTransfer.files[0])procFile(event.dataTransfer.files[0])">
+    <div class="empty-state" id="emptyState">
+      <div class="empty-icon">◈</div>
+      <div class="empty-title">AgentDome 解题助手</div>
+      <div class="empty-sub">上传题目图片，AI 实时流式输出解答<br>支持追问和讨论</div>
+      <button class="upload-hint-btn" onclick="document.getElementById('fileInput').click()">📷 拍照/上传题目</button>
     </div>
   </div>
 
-  <div class="chat-area" id="chatArea">
-    <div class="empty-state" id="emptyState">
-      <div class="empty-icon">◈</div>
-      <div class="empty-title">准备开始</div>
-      <div class="empty-sub">上传题目图片，AI 实时流式输出解答</div>
+  <div class="img-preview-bar" id="imgPreviewBar">
+    <img class="img-preview-thumb" id="imgPreviewThumb" src="">
+    <span class="img-preview-name" id="imgPreviewName"></span>
+    <div class="subject-chips" id="imgSubjectChips">
+      <div class="chip active" data-subject="ACM">⊿ 算法</div>
+      <div class="chip" data-subject="MATH">∫ 数学</div>
+      <div class="chip" data-subject="CS408">⊕ 408</div>
     </div>
+    <button class="img-preview-close" onclick="cancelImage()">✕</button>
   </div>
 
   <div class="chat-input-bar">
-    <input class="chat-input" id="chatInput" placeholder="输入追问… 例如：请用更简单的方法解释" rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendText()}">
-    <button class="chat-send" onclick="sendText()">发送</button>
+    <button class="chat-attach" id="chatAttach" onclick="document.getElementById('fileInput').click()" title="上传图片">🖼</button>
+    <input class="chat-input" id="chatInput" placeholder="输入追问，或上传图片解题…" rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage()}">
+    <button class="chat-send" onclick="sendMessage()">发送</button>
   </div>
 </div>
 
@@ -369,7 +367,7 @@ mjx-container[jax=CHTML][display=true]{margin:.7em 0;overflow-x:auto}
 </div>
 
 <script>
-var S={token:null,userId:null,nick:'',sessionId:null,ws:null,subject:'ACM',file:null,currentTab:'solve'};
+var S={token:null,userId:null,nick:'',sessionId:null,ws:null,subject:'ACM',pendingFile:null,currentTab:'solve'};
 var $=function(s){return document.querySelector(s);};
 var $$=function(s){return document.querySelectorAll(s);};
 var _streamText='';
@@ -391,8 +389,6 @@ function switchTab(tab){
   $('#mistakesPanel').style.display=tab==='mistakes'?'block':'none';
   if(tab==='mistakes')loadMistakes();
 }
-function toggleUpload(e){e.stopPropagation();$('#uploadCard').classList.toggle('collapsed')}
-
 // ── Login ──
 async function doGuestLogin(){
   var b=$('#btnGuest');b.textContent='登录中…';b.disabled=true;
@@ -467,11 +463,57 @@ function finishStream(){
   b.innerHTML=md(_streamText);typeset(b);_streamText='';
 }
 
-// ── Send Text ──
-function sendText(){
-  var input=$('#chatInput');var text=input.value.trim();if(!text||!S.ws||S.ws.readyState!==WebSocket.OPEN)return;
-  input.value='';addMsg('user',text);
-  S.ws.send(JSON.stringify({type:'text',content:text}));
+// ── Subject chips (for image preview bar) ──
+$$('#imgSubjectChips .chip').forEach(function(c){c.onclick=function(e){e.stopPropagation();$$('#imgSubjectChips .chip').forEach(function(x){x.classList.remove('active')});c.classList.add('active');S.subject=c.dataset.subject}});
+
+// ── Send Message (text or image) ──
+function sendMessage(){
+  var input=$('#chatInput');var text=input.value.trim();
+  if(S.pendingFile){
+    // Send image
+    input.value='';addMsg('user','📷 '+S.subject+' 题目');addMsg('assistant','⏳ 识别中…');
+    doUpload();
+  }else if(text){
+    // Send text
+    if(!S.ws||S.ws.readyState!==WebSocket.OPEN)return;
+    input.value='';addMsg('user',text);
+    S.ws.send(JSON.stringify({type:'text',content:text}));
+  }
+}
+
+// ── Image Handling ──
+var pendingInput=$('#fileInput');
+pendingInput.onchange=function(){if(pendingInput.files[0])procFile(pendingInput.files[0])};
+function procFile(file){
+  S.pendingFile=file;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    $('#imgPreviewThumb').src=e.target.result;
+    $('#imgPreviewName').textContent=file.name;
+    $('#imgPreviewBar').classList.add('show');
+    $('#chatAttach').classList.add('has-file');
+  };
+  reader.readAsDataURL(file);
+}
+function cancelImage(){
+  S.pendingFile=null;pendingInput.value='';
+  $('#imgPreviewBar').classList.remove('show');
+  $('#chatAttach').classList.remove('has-file');
+}
+
+async function doUpload(){
+  if(!S.pendingFile||!S.token)return;
+  var f=new FormData();f.append('file',S.pendingFile);f.append('subjectType',S.subject);f.append('sessionId',S.sessionId||'web');f.append('token',S.token);
+  cancelImage();
+  try{
+    var r=await fetch('/api/chat/upload?token='+S.token,{method:'POST',body:f});
+    var d=await r.json();
+    var bs=$$('#chatArea .msg.assistant .msg-bubble');var lb=bs[bs.length-1];
+    if(d.code===200){
+      lb.innerHTML='📷 识别结果：<br><br>'+esc(d.data.cleanedText);lb.style.borderLeftColor='var(--green)';
+      if(S.ws&&S.ws.readyState===WebSocket.OPEN)S.ws.send(JSON.stringify({type:'solve',text:d.data.cleanedText,subjectType:d.data.subjectType}));
+    }else{lb.innerHTML='✕ 识别失败';lb.style.borderLeftColor='var(--red)'}
+  }catch(e){addMsg('assistant','✕ 网络错误: '+e.message)}
 }
 
 // ── Mistakes ──
@@ -497,38 +539,6 @@ async function loadMistakes(){
   }catch(e){$('#mistakesPanel').innerHTML='<div class="mistake-empty"><div class="icon">⚠</div><div class="empty-title">加载失败</div></div>'}
 }
 
-// ── Subject ──
-$$('.chip').forEach(function(c){c.onclick=function(){$$('.chip').forEach(function(x){x.classList.remove('active')});c.classList.add('active');S.subject=c.dataset.subject}});
-
-// ── Upload ──
-var zone=$('#uploadZone'),input=$('#fileInput');
-zone.onclick=function(){input.click()};
-zone.ondragover=function(e){e.preventDefault();zone.classList.add('drag-over')};
-zone.ondragleave=function(){zone.classList.remove('drag-over')};
-zone.ondrop=function(e){e.preventDefault();zone.classList.remove('drag-over');if(e.dataTransfer.files[0]){input.files=e.dataTransfer.files;proc(e.dataTransfer.files[0])}};
-input.onchange=function(){if(input.files[0])proc(input.files[0])};
-
-function proc(file){
-  S.file=file;$('#uploadText').textContent=file.name;$('#uploadIcon').textContent='✓';zone.style.borderColor='var(--accent)';zone.style.background='var(--accent-lt)';
-  var r=new FileReader();r.onload=function(e){$('#previewImg').src=e.target.result;$('#previewImg').classList.add('show')};r.readAsDataURL(file);
-  upload();
-}
-async function upload(){
-  if(!S.file||!S.token)return;
-  var f=new FormData();f.append('file',S.file);f.append('subjectType',S.subject);f.append('sessionId',S.sessionId||'web');f.append('token',S.token);
-  addMsg('user','📷 上传了 '+S.subject+' 题目');
-  addMsg('assistant','⏳ 正在识别图片文字…');
-  try{
-    var r=await fetch('/api/chat/upload?token='+S.token,{method:'POST',body:f});
-    var d=await r.json();
-    var bs=$$('#chatArea .msg.assistant .msg-bubble');var lb=bs[bs.length-1];
-    if(d.code===200){
-      lb.innerHTML='📷 识别结果：<br><br>'+esc(d.data.cleanedText);lb.style.borderLeftColor='var(--green)';
-      if(S.ws&&S.ws.readyState===WebSocket.OPEN)S.ws.send(JSON.stringify({type:'solve',text:d.data.cleanedText,subjectType:d.data.subjectType}));
-    }else{lb.innerHTML='✕ 识别失败';lb.style.borderLeftColor='var(--red)'}
-  }catch(e){addMsg('assistant','✕ 网络错误: '+e.message)}
-  S.file=null;input.value='';$('#uploadText').textContent='拖拽题目图片，或点击此处选择文件';$('#uploadIcon').textContent='⊞';zone.style.borderColor='';zone.style.background='var(--cream)';$('#previewImg').classList.remove('show');
-}
 </script>
 </body>
 </html>
