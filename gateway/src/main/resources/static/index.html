@@ -10,9 +10,16 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/github-dark.min.css">
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/highlight.min.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
-<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$','$'],['\\(','\\)']],
+    displayMath: [['$$','$$'],['\\[','\\]']],
+    processEscapes: true
+  }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 <style>
 :root {
   --bg:#1a1a17; --surface:#242420; --surface2:#2d2d28; --border:#383830;
@@ -229,13 +236,9 @@ input[type=file]{display:none}
   padding:.1em .35em;border-radius:2px;
 }
 .markdown-body img{max-width:100%;margin:.5em 0}
-.markdown-body .katex{font-size:1.05em}
-.markdown-body .katex *{color:var(--text)!important}
-.markdown-body .katex .mord{color:var(--text)!important}
-.markdown-body .katex .mbin,.markdown-body .katex .mrel{color:var(--gold-bright)!important}
-.markdown-body .katex .mop,.markdown-body .katex .mopen,.markdown-body .katex .mclose{color:var(--text-dim)!important}
-.markdown-body .katex-display{margin:.8em 0;overflow-x:auto;overflow-y:hidden}
-.markdown-body .katex-display>.katex{display:inline-block;white-space:nowrap;max-width:100%;overflow-x:auto}
+.markdown-body mjx-container{font-size:1em!important;color:var(--text)!important}
+.markdown-body mjx-container[jax=CHTML][display=true]{margin:.8em 0;overflow-x:auto}
+.markdown-body .MathJax{color:var(--text)}
 </style>
 </head>
 <body>
@@ -407,6 +410,7 @@ function addBubble(role,text,streaming,isMd){
     '<div class="msg-bubble'+cls+(isMd?' markdown-body':'')+'">'+content+(streaming?'<span class="stream-cursor"></span>':'')+'</div>'+
     '<div class="msg-time">'+now()+'</div></div>';
   $('#chatList').appendChild(div);
+  if(isMd && !streaming){ typesetMath(div); }
   div.scrollIntoView({behavior:'smooth',block:'end'});
 }
 
@@ -428,28 +432,19 @@ function finishLast(){
   b.classList.remove('streaming');
   b.classList.add('markdown-body');
   b.innerHTML = md(_streamText);
+  typesetMath(b);
   _streamText = '';
 }
 
 function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function md(s){
-  try{
-    var html = marked.parse(s);
-    // Use KaTeX auto-render for robust math handling
-    var div = document.createElement('div');
-    div.innerHTML = html;
-    renderMathInElement(div, {
-      delimiters: [
-        {left:'$$',right:'$$',display:true},
-        {left:'\\[',right:'\\]',display:true},
-        {left:'$',right:'$',display:false},
-        {left:'\\(',right:'\\)',display:false}
-      ],
-      throwOnError: false,
-      strict: false
-    });
-    return div.innerHTML;
-  }catch(e){ return esc(s); }
+  try{ return marked.parse(s); }
+  catch(e){ return esc(s); }
+}
+function typesetMath(el){
+  if(window.MathJax){
+    MathJax.typesetPromise([el]).catch(function(){});
+  }
 }
 function now(){ return new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'}); }
 
