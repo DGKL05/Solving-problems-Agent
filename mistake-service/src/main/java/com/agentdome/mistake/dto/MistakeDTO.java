@@ -10,6 +10,7 @@ public class MistakeDTO {
     private Long problemId;
     private String subjectType;
     private String cleanedText;
+    private String solutionText;
     private String errorType;
     private String memo;
     private List<String> tags;

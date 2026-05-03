@@ -237,6 +237,8 @@ input[type=file]{display:none}
   background:var(--accent-lt);color:var(--accent);
 }
 .mistake-tag.error-type{background:var(--copper-lt);color:var(--copper)}
+.mistake-detail{overflow:hidden;transition:all .3s}
+.mistake-detail.hidden{display:none}
 .mistake-empty{text-align:center;padding:4rem 2rem;margin:auto}
 .mistake-empty .icon{font-size:2.5rem;margin-bottom:.5rem;opacity:.25}
 
@@ -521,22 +523,39 @@ async function loadMistakes(){
   if(!S.token)return;
   try{
     var r=await fetch('/api/mistakes',{headers:{'Authorization':'Bearer '+S.token}});
-    if(!r.ok){$('#mistakesPanel').innerHTML='<div class="mistake-empty"><div class="icon">📋</div><div class="empty-title">暂无错题</div></div>';return}
+    if(!r.ok){showMistakesEmpty('暂无错题');return}
     var d=await r.json();
     var items=(d.data||[]);
-    if(!items.length){$('#mistakesPanel').innerHTML='<div class="mistake-empty"><div class="icon">📋</div><div class="empty-title">暂无错题</div><div class="empty-sub">解题时会自动记录</div></div>';return}
-    $('#mistakesPanel').innerHTML=items.map(function(m){
-      var d=new Date(m.createdAt).toLocaleDateString('zh-CN');
-      return '<div class="mistake-card">'+
-        '<div class="mistake-date">'+d+' · #'+m.id+'</div>'+
-        '<div class="mistake-text">'+esc(m.cleanedText||'题目预览')+'</div>'+
+    if(!items.length){showMistakesEmpty('暂无错题','解题时会自动记录');return}
+    $('#mistakesPanel').innerHTML=items.map(function(m,idx){
+      var date=new Date(m.createdAt).toLocaleDateString('zh-CN');
+      return '<div class="mistake-card" id="mcard'+idx+'" onclick="toggleMistake('+idx+')">'+
+        '<div class="mistake-date">'+date+' · #'+m.id+'</div>'+
+        '<div class="mistake-text" id="mtext'+idx+'">'+esc(m.cleanedText||'题目预览')+'</div>'+
         '<div class="mistake-meta">'+
           (m.subjectType?'<span class="mistake-tag">'+esc(m.subjectType)+'</span>':'')+
           (m.errorType?'<span class="mistake-tag error-type">'+esc(m.errorType)+'</span>':'')+
           (m.memo?'<span style="font-size:.75rem;color:var(--ink2)">📝 '+esc(m.memo)+'</span>':'')+
+          '<span style="font-size:.7rem;color:var(--accent);margin-left:auto;cursor:pointer">展开 ▾</span>'+
+        '</div>'+
+        '<div class="mistake-detail hidden" id="mdetail'+idx+'">'+
+          '<div style="margin-top:1rem;padding-top:.8rem;border-top:1px solid var(--border)">'+
+            '<div style="font-size:.75rem;color:var(--accent);font-weight:600;margin-bottom:.4rem">🤖 AI 解答</div>'+
+            '<div class="markdown-body" id="msolution'+idx+'">'+md(m.solutionText||'暂无解答')+'</div>'+
+          '</div>'+
         '</div></div>';
     }).join('');
-  }catch(e){$('#mistakesPanel').innerHTML='<div class="mistake-empty"><div class="icon">⚠</div><div class="empty-title">加载失败</div></div>'}
+    // Typeset math after render
+    setTimeout(function(){$$('.mistake-detail .markdown-body').forEach(function(el){typeset(el)})},200);
+  }catch(e){showMistakesEmpty('加载失败')}
+}
+function showMistakesEmpty(title,sub){
+  $('#mistakesPanel').innerHTML='<div class="mistake-empty"><div class="icon">📋</div><div class="empty-title">'+title+'</div>'+(sub?'<div class="empty-sub">'+sub+'</div>':'')+'</div>';
+}
+function toggleMistake(idx){
+  var d=$('#mdetail'+idx);var t=$('#mtext'+idx);
+  if(d.classList.contains('hidden')){d.classList.remove('hidden');t.style.webkitLineClamp='unset';t.style.overflow='visible'}
+  else{d.classList.add('hidden');t.style.webkitLineClamp='3';t.style.overflow='hidden'}
 }
 
 </script>

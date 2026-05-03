@@ -73,7 +73,8 @@ public class MistakeService {
             dto.setMemo(m.getMemo());
             if (p != null) {
                 dto.setSubjectType(p.getSubjectType().name());
-                dto.setCleanedText(truncate(p.getCleanedText(), 200));
+                dto.setCleanedText(p.getCleanedText());
+                dto.setSolutionText(p.getSolutionText());
                 dto.setErrorType(p.getErrorType());
             }
             return dto;
@@ -82,10 +83,5 @@ public class MistakeService {
 
     public List<MistakeDTO> queryMistakes(Long userId, String tag, LocalDateTime start, LocalDateTime end) {
         return getUserMistakes(userId);
-    }
-
-    private String truncate(String text, int maxLen) {
-        if (text == null) return "";
-        return text.length() <= maxLen ? text : text.substring(0, maxLen) + "...";
     }
 }
