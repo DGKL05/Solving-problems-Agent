@@ -111,8 +111,9 @@ public class WebSocketConfig implements WebSocketConfigurer {
                             error -> sendJson(session, Map.of("type", "solve-error", "message", error.getMessage()))
                     );
                 } else {
-                    // Regular chat message via AgentService
-                    String response = agentService.processMessage(sessionId, userId, message.getPayload());
+                    // Regular chat message — extract content if present
+                    String userText = msg.containsKey("content") ? (String) msg.get("content") : message.getPayload();
+                    String response = agentService.processMessage(sessionId, userId, userText);
                     sendJson(session, Map.of("type", "message", "content", response));
                 }
             } catch (Exception e) {

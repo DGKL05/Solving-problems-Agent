@@ -5,6 +5,7 @@ import com.agentdome.agent.memory.SummaryService;
 import com.agentdome.agent.prompt.PromptTemplateManager;
 import com.agentdome.agent.tools.*;
 import com.agentdome.common.config.UserProblemTracker;
+import com.agentdome.common.exception.BusinessException;
 import org.springframework.stereotype.Service;
 import java.util.UUID;
 
@@ -22,6 +23,7 @@ public class AgentService {
     private final ExplainConceptTool explainConceptTool;
     private final DeleteMistakeTool deleteMistakeTool;
     private final UserProblemTracker problemTracker;
+    private final QwenService qwenService;
 
     public AgentService(PromptTemplateManager promptManager,
                         @org.springframework.beans.factory.annotation.Autowired(required = false) SessionMemoryManager memoryManager,
@@ -32,7 +34,8 @@ public class AgentService {
                         RecommendSimilarTool recommendSimilarTool,
                         ExplainConceptTool explainConceptTool,
                         DeleteMistakeTool deleteMistakeTool,
-                        UserProblemTracker problemTracker) {
+                        UserProblemTracker problemTracker,
+                        QwenService qwenService) {
         this.promptManager = promptManager;
         this.memoryManager = memoryManager;
         this.summaryService = summaryService;
@@ -43,6 +46,7 @@ public class AgentService {
         this.explainConceptTool = explainConceptTool;
         this.deleteMistakeTool = deleteMistakeTool;
         this.problemTracker = problemTracker;
+        this.qwenService = qwenService;
     }
 
     public String newSession(Long userId) {
@@ -88,7 +92,12 @@ public class AgentService {
         } else if (userMessage.contains("概念") || userMessage.contains("解释") || userMessage.contains("是什么")) {
             response = explainConceptTool.explainConcept(userMessage, "ACM");
         } else {
-            response = "收到你的消息：「" + userMessage + "」\n\n请告诉我你需要什么帮助？\n- 拍照解题（上传图片即可）\n- 加入错题集\n- 查询错题\n- 推荐相似题目\n- 解释某个概念";
+            // General question - use Qwen to answer
+            try {
+                response = qwenService.solveSync("ACM", "请用中文简要回答以下问题，要求简洁清晰：\n" + userMessage);
+            } catch (Exception e) {
+                response = "收到你的消息：「" + userMessage + "」\n\n请告诉我你需要什么帮助？\n- 拍照解题（上传图片即可）\n- 加入错题集\n- 查询错题\n- 删除错题\n- 提问任何知识问题";
+            }
         }
 
         if (memoryManager != null) {
