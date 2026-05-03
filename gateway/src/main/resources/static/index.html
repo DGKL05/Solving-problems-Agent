@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgentDome - AI智能解题助手</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460);min-height:100vh;color:#fff}
+.container{max-width:800px;margin:0 auto;padding:16px}
+.header{text-align:center;padding:24px 0 16px}
+.header h1{font-size:28px;background:linear-gradient(90deg,#4A90D9,#7B68EE);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.header p{color:#8899aa;font-size:14px;margin-top:4px}
+.chat-area{background:rgba(255,255,255,0.05);border-radius:16px;min-height:400px;max-height:calc(100vh - 280px);overflow-y:auto;padding:16px;margin-bottom:16px;backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.1)}
+.msg{display:flex;margin-bottom:16px;animation:fadeIn .3s}
+.msg.user{justify-content:flex-end}
+.msg.assistant{justify-content:flex-start}
+.msg .bubble{max-width:80%;padding:12px 16px;border-radius:16px;line-height:1.6;word-break:break-word;white-space:pre-wrap;font-size:15px}
+.msg.user .bubble{background:linear-gradient(135deg,#4A90D9,#357ABD);color:#fff;border-radius:16px 16px 4px 16px}
+.msg.assistant .bubble{background:rgba(255,255,255,0.1);color:#e0e0e0;border-radius:16px 16px 16px 4px;border:1px solid rgba(255,255,255,0.08)}
+.msg.assistant .bubble.streaming{border:1px solid rgba(74,144,217,0.4)}
+.msg .time{font-size:11px;color:#667;margin:4px 8px 0}
+.msg.user .time{text-align:right}
+.image-msg{max-width:200px;border-radius:12px;cursor:pointer}
+.empty-state{text-align:center;padding:60px 20px;color:#667}
+.empty-state .icon{font-size:48px;margin-bottom:16px}
+.bottom-bar{position:sticky;bottom:0;background:rgba(26,26,46,0.95);padding:12px 0;border-radius:16px}
+.upload-area{border:2px dashed rgba(255,255,255,0.2);border-radius:12px;padding:20px;text-align:center;cursor:pointer;transition:.3s;margin-bottom:12px}
+.upload-area:hover{border-color:#4A90D9;background:rgba(74,144,217,0.1)}
+.upload-area.has-file{border-color:#4A90D9;background:rgba(74,144,217,0.1)}
+.upload-icon{font-size:28px;margin-bottom:6px}
+.upload-text{color:#aaa;font-size:13px}
+.upload-preview{max-width:150px;max-height:100px;border-radius:8px;margin-top:8px}
+.subject-picker{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;padding:8px 0}
+.subject-btn{padding:10px 20px;border-radius:24px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.05);color:#ccc;cursor:pointer;font-size:14px;transition:.3s}
+.subject-btn:hover{background:rgba(74,144,217,0.2);border-color:#4A90D9;color:#fff}
+.subject-btn.active{background:#4A90D9;border-color:#4A90D9;color:#fff}
+.hidden{display:none!important}
+#status{text-align:center;padding:4px;font-size:12px;color:#667}
+#status.connected{color:#4caf50}
+.loading-dot{display:inline-block;animation:blink 1s infinite}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.cursor{animation:blink 1s infinite}
+input[type=file]{display:none}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header">
+  <h1>🤖 AgentDome</h1>
+  <p>AI智能解题助手 · 拍照即答</p>
+</div>
+
+<div class="chat-area" id="chatArea">
+  <div class="empty-state" id="emptyState">
+    <div class="icon">📸</div>
+    <div>点击下方上传题目图片</div>
+    <div style="font-size:12px;color:#556;margin-top:8px">支持 ACM算法 / 高等数学 / 考研408</div>
+  </div>
+</div>
+
+<div class="bottom-bar">
+  <div id="status">🔗 连接中...</div>
+  <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+    <div class="upload-icon">📷</div>
+    <div class="upload-text" id="uploadText">点击上传或拖拽题目图片</div>
+    <img class="upload-preview hidden" id="previewImg">
+  </div>
+  <input type="file" id="fileInput" accept="image/*" onchange="handleFile(this)">
+  <div class="subject-picker">
+    <button class="subject-btn active" data-subject="ACM" onclick="selectSubject('ACM',this)">💻 ACM算法</button>
+    <button class="subject-btn" data-subject="MATH" onclick="selectSubject('MATH',this)">📐 高等数学</button>
+    <button class="subject-btn" data-subject="CS408" onclick="selectSubject('CS408',this)">📚 考研408</button>
+  </div>
+</div>
+</div>
+
+<script>
+var state = {token:null, userId:null, sessionId:null, ws:null, subjectType:'ACM', pendingFile:null};
+var chatArea = document.getElementById('chatArea');
+var emptyState = document.getElementById('emptyState');
+var statusEl = document.getElementById('status');
+
+// Auto guest login
+async function guestLogin(){
+  try{
+    var resp = await fetch('/api/auth/guest',{method:'POST',headers:{'Content-Type':'application/json'}});
+    var data = await resp.json();
+    state.token = data.token;
+    state.userId = data.userId;
+    statusEl.textContent = '✅ 已连接';
+    statusEl.className = 'connected';
+    connectWS();
+  }catch(e){
+    statusEl.textContent = '❌ 连接失败，请确认后端已启动';
+    console.error(e);
+  }
+}
+
+function connectWS(){
+  var proto = location.protocol==='https:'?'wss':'ws';
+  var wsUrl = proto+'://'+location.host+'/ws/chat?token='+state.token;
+  state.ws = new WebSocket(wsUrl);
+  state.ws.onopen = function(){ statusEl.textContent = '✅ 在线'; statusEl.className='connected'; };
+  state.ws.onmessage = function(e){
+    var msg = JSON.parse(e.data);
+    if(msg.type==='connected'){ state.sessionId=msg.sessionId; }
+    else if(msg.type==='solve-start'){ addBubble('assistant','',true); }
+    else if(msg.type==='solve-chunk'){ appendToLast(msg.chunk); }
+    else if(msg.type==='solve-done'){ finishLast(); }
+    else if(msg.type==='solve-error'){ appendToLast('\n\n[错误: '+msg.message+']'); finishLast(); }
+    else if(msg.type==='message'){ addBubble('assistant',msg.content); }
+  };
+  state.ws.onclose = function(){ statusEl.textContent='🔗 已断开'; statusEl.className=''; setTimeout(guestLogin,3000); };
+  state.ws.onerror = function(){ statusEl.textContent='⚠️ 连接错误'; statusEl.className=''; };
+}
+
+function addBubble(role,content,streaming){
+  emptyState.classList.add('hidden');
+  var div = document.createElement('div');
+  div.className = 'msg '+role;
+  div.innerHTML = '<div class="bubble'+(streaming?' streaming':'')+'">'+escapeHtml(content)+(streaming?'<span class="cursor">▌</span>':'')+'</div><div class="time">'+new Date().toLocaleTimeString()+'</div>';
+  chatArea.appendChild(div);
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+function appendToLast(text){
+  var msgs = chatArea.querySelectorAll('.msg.assistant');
+  var last = msgs[msgs.length-1];
+  if(!last) return;
+  var bubble = last.querySelector('.bubble');
+  bubble.innerHTML = bubble.innerHTML.replace('<span class="cursor">▌</span>','') + escapeHtml(text) + '<span class="cursor">▌</span>';
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+function finishLast(){
+  var msgs = chatArea.querySelectorAll('.msg.assistant');
+  var last = msgs[msgs.length-1];
+  if(!last) return;
+  var bubble = last.querySelector('.bubble');
+  bubble.classList.remove('streaming');
+  bubble.innerHTML = bubble.innerHTML.replace('<span class="cursor">▌</span>','');
+}
+
+function escapeHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>'); }
+
+function selectSubject(type,btn){
+  state.subjectType = type;
+  document.querySelectorAll('.subject-btn').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+}
+
+function handleFile(input){
+  var file = input.files[0];
+  if(!file) return;
+  state.pendingFile = file;
+  document.getElementById('uploadText').textContent = '已选择: '+file.name;
+  document.getElementById('uploadArea').classList.add('has-file');
+
+  var reader = new FileReader();
+  reader.onload = function(e){
+    var img = document.getElementById('previewImg');
+    img.src = e.target.result;
+    img.classList.remove('hidden');
+  };
+  reader.readAsDataURL(file);
+  uploadImage();
+}
+
+async function uploadImage(){
+  if(!state.pendingFile || !state.token) return;
+  var form = new FormData();
+  form.append('file', state.pendingFile);
+  form.append('subjectType', state.subjectType);
+  form.append('sessionId', state.sessionId||'web');
+  form.append('token', state.token);
+
+  addBubble('user','[📷 '+state.subjectType+' 题目图片]');
+  addBubble('assistant','🔍 正在识别图片文字...');
+
+  try{
+    var resp = await fetch('/api/chat/upload?token='+state.token,{method:'POST',body:form});
+    var data = await resp.json();
+    if(data.code===200){
+      var lastMsgs = chatArea.querySelectorAll('.msg.assistant');
+      var lastBubble = lastMsgs[lastMsgs.length-1].querySelector('.bubble');
+      lastBubble.innerHTML = '📷 识别结果：<br><br>'+escapeHtml(data.data.cleanedText);
+
+      // Send solve via WebSocket
+      if(state.ws && state.ws.readyState===WebSocket.OPEN){
+        state.ws.send(JSON.stringify({type:'solve',text:data.data.cleanedText,subjectType:data.data.subjectType}));
+      }
+    }else{
+      addBubble('assistant','❌ 识别失败: '+ (data.message||'未知错误'));
+    }
+  }catch(e){
+    addBubble('assistant','❌ 网络错误: '+e.message);
+  }
+
+  // Reset
+  state.pendingFile = null;
+  document.getElementById('uploadText').textContent = '点击上传或拖拽题目图片';
+  document.getElementById('uploadArea').classList.remove('has-file');
+  document.getElementById('previewImg').classList.add('hidden');
+  document.getElementById('fileInput').value = '';
+}
+
+// Drag & drop
+var uploadArea = document.getElementById('uploadArea');
+uploadArea.addEventListener('dragover',function(e){ e.preventDefault(); uploadArea.style.borderColor='#4A90D9'; });
+uploadArea.addEventListener('dragleave',function(){ uploadArea.style.borderColor=''; });
+uploadArea.addEventListener('drop',function(e){ e.preventDefault(); uploadArea.style.borderColor=''; var f=e.dataTransfer.files[0]; if(f){ document.getElementById('fileInput').files=e.dataTransfer.files; handleFile(document.getElementById('fileInput')); } });
+
+guestLogin();
+</script>
+</body>
+</html>
