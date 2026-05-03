@@ -1,15 +1,22 @@
 package com.agentdome.agent;
 
+import com.alibaba.dashscope.aigc.generation.Generation;
+import com.alibaba.dashscope.aigc.generation.GenerationParam;
+import com.alibaba.dashscope.aigc.generation.GenerationResult;
+import com.alibaba.dashscope.common.Message;
+import com.alibaba.dashscope.common.ResultCallback;
+import com.alibaba.dashscope.common.Role;
+import com.alibaba.dashscope.exception.ApiException;
+import com.alibaba.dashscope.exception.InputRequiredException;
+import com.alibaba.dashscope.exception.NoApiKeyException;
 import com.agentdome.common.exception.BusinessException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
-import java.util.Map;
+
+import java.util.Arrays;
+import java.util.function.Consumer;
 
 @Service
 public class QwenService {
@@ -19,48 +26,65 @@ public class QwenService {
     @Value("${aliyun.dashscope.api-key}")
     private String apiKey;
 
-    private final RestTemplate restTemplate = new RestTemplate();
-
-    private static final String URL =
-            "https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation";
-
-    public String solveProblem(String subjectType, String cleanedText) {
+    public String solveSync(String subjectType, String cleanedText) {
         String prompt = buildPrompt(subjectType, cleanedText);
-        log.info("Qwen solving with qwen-max, prompt len={}, apiKey={}",
-                prompt.length(), apiKey != null ? apiKey.substring(0, 5) : "NULL");
-
         try {
-            ObjectMapper mapper = new ObjectMapper();
-            Map<String, Object> body = Map.of(
-                "model", "qwen-max",
-                "input", Map.of("messages", new Object[]{
-                    Map.of("role", "user", "content", prompt)
-                }),
-                "parameters", Map.of()
-            );
-            String json = mapper.writeValueAsString(body);
+            Generation gen = new Generation();
+            Message userMsg = Message.builder().role(Role.USER.getValue()).content(prompt).build();
+            GenerationParam param = GenerationParam.builder()
+                    .apiKey(apiKey)
+                    .model("qwen-max")
+                    .messages(Arrays.asList(userMsg))
+                    .resultFormat(GenerationParam.ResultFormat.MESSAGE)
+                    .build();
+            GenerationResult result = gen.call(param);
+            return result.getOutput().getChoices().get(0).getMessage().getContent();
+        } catch (ApiException | NoApiKeyException | InputRequiredException e) {
+            throw new BusinessException("Qwen error: " + e.getMessage());
+        }
+    }
 
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.setBearerAuth(apiKey);
+    public void solveStream(String subjectType, String cleanedText,
+                            Consumer<String> onToken, Consumer<String> onDone, Consumer<Throwable> onError) {
+        String prompt = buildPrompt(subjectType, cleanedText);
+        log.info("Qwen streaming solve, prompt len={}", prompt.length());
+        try {
+            Generation gen = new Generation();
+            Message userMsg = Message.builder().role(Role.USER.getValue()).content(prompt).build();
+            GenerationParam param = GenerationParam.builder()
+                    .apiKey(apiKey)
+                    .model("qwen-max")
+                    .messages(Arrays.asList(userMsg))
+                    .resultFormat(GenerationParam.ResultFormat.MESSAGE)
+                    .incrementalOutput(true)
+                    .build();
 
-            ResponseEntity<String> resp = restTemplate.postForEntity(
-                    URL, new HttpEntity<>(json, headers), String.class);
+            StringBuilder full = new StringBuilder();
+            gen.streamCall(param, new ResultCallback<GenerationResult>() {
+                @Override
+                public void onEvent(GenerationResult result) {
+                    String text = result.getOutput().getChoices().get(0).getMessage().getContent();
+                    if (text != null && !text.isEmpty()) {
+                        full.append(text);
+                        onToken.accept(text);
+                    }
+                }
 
-            log.info("Qwen HTTP {}: {}", resp.getStatusCode(),
-                    resp.getBody() != null ? resp.getBody().substring(0, Math.min(200, resp.getBody().length())) : "null");
+                @Override
+                public void onComplete() {
+                    log.info("Qwen streaming done, total len={}", full.length());
+                    onDone.accept(full.toString());
+                }
 
-            JsonNode root = mapper.readTree(resp.getBody());
-            if (root.has("output")) {
-                return root.get("output").get("text").asText();
-            }
-            throw new BusinessException("Qwen: " + resp.getBody());
-
-        } catch (BusinessException e) {
-            throw e;
-        } catch (Exception e) {
-            log.error("Qwen error", e);
-            throw new BusinessException("Qwen: " + e.getMessage());
+                @Override
+                public void onError(Exception e) {
+                    log.error("Qwen streaming error", e);
+                    onError.accept(e);
+                }
+            });
+        } catch (ApiException | NoApiKeyException | InputRequiredException e) {
+            log.error("Qwen streaming error", e);
+            onError.accept(e);
         }
     }
 
