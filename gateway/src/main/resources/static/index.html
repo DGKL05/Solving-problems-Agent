@@ -2,217 +2,435 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AgentDome - AI智能解题助手</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AgentDome · AI 解题</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;1,8..60,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
+:root {
+  --bg:#1a1a17; --surface:#242420; --surface2:#2d2d28; --border:#383830;
+  --gold:#c9a84c; --gold-dim:#8a7234; --gold-bright:#e8c97a;
+  --text:#e6e2d8; --text-dim:#8a877e; --text-faint:#5c5952;
+  --sage:#7a9d7e; --red:#b85450;
+}
+
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460);min-height:100vh;color:#fff}
-.container{max-width:800px;margin:0 auto;padding:16px}
-.header{text-align:center;padding:24px 0 16px}
-.header h1{font-size:28px;background:linear-gradient(90deg,#4A90D9,#7B68EE);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.header p{color:#8899aa;font-size:14px;margin-top:4px}
-.chat-area{background:rgba(255,255,255,0.05);border-radius:16px;min-height:400px;max-height:calc(100vh - 280px);overflow-y:auto;padding:16px;margin-bottom:16px;backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.1)}
-.msg{display:flex;margin-bottom:16px;animation:fadeIn .3s}
-.msg.user{justify-content:flex-end}
-.msg.assistant{justify-content:flex-start}
-.msg .bubble{max-width:80%;padding:12px 16px;border-radius:16px;line-height:1.6;word-break:break-word;white-space:pre-wrap;font-size:15px}
-.msg.user .bubble{background:linear-gradient(135deg,#4A90D9,#357ABD);color:#fff;border-radius:16px 16px 4px 16px}
-.msg.assistant .bubble{background:rgba(255,255,255,0.1);color:#e0e0e0;border-radius:16px 16px 16px 4px;border:1px solid rgba(255,255,255,0.08)}
-.msg.assistant .bubble.streaming{border:1px solid rgba(74,144,217,0.4)}
-.msg .time{font-size:11px;color:#667;margin:4px 8px 0}
-.msg.user .time{text-align:right}
-.image-msg{max-width:200px;border-radius:12px;cursor:pointer}
-.empty-state{text-align:center;padding:60px 20px;color:#667}
-.empty-state .icon{font-size:48px;margin-bottom:16px}
-.bottom-bar{position:sticky;bottom:0;background:rgba(26,26,46,0.95);padding:12px 0;border-radius:16px}
-.upload-area{border:2px dashed rgba(255,255,255,0.2);border-radius:12px;padding:20px;text-align:center;cursor:pointer;transition:.3s;margin-bottom:12px}
-.upload-area:hover{border-color:#4A90D9;background:rgba(74,144,217,0.1)}
-.upload-area.has-file{border-color:#4A90D9;background:rgba(74,144,217,0.1)}
-.upload-icon{font-size:28px;margin-bottom:6px}
-.upload-text{color:#aaa;font-size:13px}
-.upload-preview{max-width:150px;max-height:100px;border-radius:8px;margin-top:8px}
-.subject-picker{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;padding:8px 0}
-.subject-btn{padding:10px 20px;border-radius:24px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.05);color:#ccc;cursor:pointer;font-size:14px;transition:.3s}
-.subject-btn:hover{background:rgba(74,144,217,0.2);border-color:#4A90D9;color:#fff}
-.subject-btn.active{background:#4A90D9;border-color:#4A90D9;color:#fff}
-.hidden{display:none!important}
-#status{text-align:center;padding:4px;font-size:12px;color:#667}
-#status.connected{color:#4caf50}
-.loading-dot{display:inline-block;animation:blink 1s infinite}
-@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
-.cursor{animation:blink 1s infinite}
+html{font-size:17px}
+body{
+  font-family:'Source Serif 4',Georgia,serif;
+  background:var(--bg); color:var(--text);
+  min-height:100vh; line-height:1.65;
+  position:relative; overflow-x:hidden;
+}
+
+body::before{
+  content:''; position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.025;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
 input[type=file]{display:none}
+.hidden{display:none!important}
+
+/* ═══════════════ LOGIN SCREEN ═══════════════ */
+.login-screen{
+  position:fixed;inset:0;z-index:10;background:var(--bg);
+  display:flex;align-items:center;justify-content:center;
+}
+.login-card{
+  width:380px;max-width:90vw;padding:3rem 2rem;text-align:center;
+  background:var(--surface);border:1px solid var(--border);
+  position:relative;
+}
+.login-card::after{
+  content:'';position:absolute;bottom:-8px;left:12px;right:12px;height:8px;
+  background:var(--surface2);border:1px solid var(--border);z-index:-1;
+}
+.login-mark{
+  font-family:'JetBrains Mono',monospace;
+  font-size:.7rem;color:var(--gold);letter-spacing:.15em;
+  border:1px solid var(--gold-dim);display:inline-block;
+  padding:.2rem .6rem;margin-bottom:1.5rem;
+}
+.login-title{
+  font-family:'Playfair Display',Georgia,serif;
+  font-size:2rem;font-weight:700;letter-spacing:-.02em;
+  margin-bottom:.5rem;
+}
+.login-sub{color:var(--text-dim);font-size:.85rem;margin-bottom:2rem}
+.login-avatar{
+  width:56px;height:56px;border-radius:2px;margin:0 auto 1.2rem;
+  background:var(--surface2);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.4rem;color:var(--text-faint);
+}
+.login-input{
+  width:100%;padding:.8rem 1rem;font-size:.9rem;
+  font-family:'Source Serif 4',Georgia,serif;
+  background:var(--bg);border:1px solid var(--border);color:var(--text);
+  outline:none;margin-bottom:.75rem;transition:.2s;
+}
+.login-input:focus{border-color:var(--gold-dim)}
+.login-input::placeholder{color:var(--text-faint)}
+.login-btn{
+  width:100%;padding:.85rem;font-size:.9rem;cursor:pointer;border:none;
+  font-family:'Source Serif 4',Georgia,serif;
+  color:var(--text);letter-spacing:.05em;
+  transition:all .25s;margin-bottom:.6rem;
+  background:var(--gold-dim);
+}
+.login-btn:hover{background:var(--gold)}
+.login-btn.ghost{background:transparent;border:1px solid var(--border);color:var(--text-dim)}
+.login-btn.ghost:hover{border-color:var(--gold-dim);color:var(--text)}
+.login-divider{
+  display:flex;align-items:center;gap:.75rem;margin:1rem 0;
+  color:var(--text-faint);font-size:.75rem;
+}
+.login-divider::before,.login-divider::after{content:'';flex:1;height:1px;background:var(--border)}
+.login-error{color:var(--red);font-size:.8rem;margin-top:.5rem}
+
+/* ═══════════════ MAIN APP ═══════════════ */
+.app{position:relative;z-index:1;max-width:960px;margin:0 auto;padding:2rem 1.5rem}
+.header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:1.5rem 0 2rem;border-bottom:1px solid var(--border);
+  margin-bottom:2rem;flex-wrap:wrap;gap:1rem;
+}
+.logo-group{display:flex;align-items:baseline;gap:.75rem}
+.logo-mark{
+  font-family:'JetBrains Mono',monospace;font-size:.7rem;
+  color:var(--gold);border:1px solid var(--gold-dim);
+  padding:.15rem .5rem;letter-spacing:.1em;
+}
+.logo-text{
+  font-family:'Playfair Display',Georgia,serif;
+  font-size:1.6rem;font-weight:700;letter-spacing:-.02em;
+  color:var(--text);
+}
+.user-area{display:flex;align-items:center;gap:.6rem}
+.user-avatar{
+  width:28px;height:28px;border-radius:2px;
+  background:var(--gold-dim);color:var(--bg);
+  display:flex;align-items:center;justify-content:center;
+  font-size:.65rem;font-family:'JetBrains Mono',monospace;
+}
+.user-name{font-size:.8rem;color:var(--text-dim)}
+.status-line{display:flex;align-items:center;gap:.4rem;font-size:.7rem;color:var(--text-faint)}
+.status-dot{width:6px;height:6px;border-radius:50%;background:var(--text-faint);transition:.3s}
+.status-dot.on{background:var(--sage);box-shadow:0 0 6px rgba(122,157,126,.5)}
+
+/* ═══════════════ LAYOUT ═══════════════ */
+.main-grid{display:grid;grid-template-columns:340px 1fr;gap:2rem;align-items:start}
+@media(max-width:768px){.main-grid{grid-template-columns:1fr}}
+.sidebar{position:sticky;top:2rem}
+
+.upload-card{
+  background:var(--surface);border:1px solid var(--border);
+  padding:1.75rem;margin-bottom:1.25rem;position:relative;
+}
+.upload-card::before{
+  content:'';position:absolute;top:-1px;left:1.5rem;right:1.5rem;height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold-dim),transparent);
+}
+.card-label{
+  font-family:'JetBrains Mono',monospace;font-size:.65rem;
+  text-transform:uppercase;letter-spacing:.15em;
+  color:var(--text-faint);margin-bottom:1rem;
+}
+.upload-zone{
+  border:1px dashed var(--border);padding:2rem 1.5rem;text-align:center;
+  cursor:pointer;transition:all .25s;position:relative;
+}
+.upload-zone:hover,.upload-zone.drag-over{border-color:var(--gold-dim);background:rgba(201,168,76,.04)}
+.upload-zone-icon{font-size:2rem;margin-bottom:.5rem;opacity:.6}
+.upload-zone-text{font-size:.85rem;color:var(--text-dim)}
+.upload-zone-hint{font-size:.7rem;color:var(--text-faint);margin-top:.35rem}
+.upload-preview{max-width:100%;max-height:160px;margin-top:.75rem;display:none}
+.upload-preview.show{display:block}
+
+.subject-chips{display:flex;gap:.5rem;margin-top:1rem;flex-wrap:wrap}
+.chip{
+  padding:.5rem .9rem;font-size:.78rem;font-family:'JetBrains Mono',monospace;
+  background:var(--surface2);border:1px solid var(--border);
+  color:var(--text-dim);cursor:pointer;transition:all .2s;letter-spacing:.03em;
+}
+.chip:hover{border-color:var(--gold-dim);color:var(--gold)}
+.chip.active{background:rgba(201,168,76,.12);border-color:var(--gold);color:var(--gold-bright)}
+.chip .emoji{font-size:.9rem;margin-right:.25rem}
+.ornament{text-align:center;color:var(--text-faint);font-size:.65rem;margin-top:1rem;letter-spacing:.25em}
+
+/* ═══════════════ CHAT ═══════════════ */
+.chat-container{min-height:60vh}
+.chat-list{display:flex;flex-direction:column;gap:1.5rem}
+.empty-state{text-align:center;padding:4rem 2rem}
+.empty-icon{font-size:3rem;margin-bottom:1rem;opacity:.4}
+.empty-title{font-family:'Playfair Display',Georgia,serif;font-size:1.4rem;color:var(--text-dim);margin-bottom:.5rem}
+.empty-sub{font-size:.85rem;color:var(--text-faint);line-height:1.7}
+
+.msg{display:flex;gap:.75rem;animation:msgIn .35s ease-out}
+@keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.msg.user{flex-direction:row-reverse}
+.msg-avatar{
+  width:2rem;height:2rem;border-radius:2px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.7rem;font-family:'JetBrains Mono',monospace;
+}
+.msg.user .msg-avatar{background:var(--gold-dim);color:var(--bg)}
+.msg.assistant .msg-avatar{background:var(--surface2);color:var(--text-dim);border:1px solid var(--border)}
+.msg-body{max-width:85%}
+.msg-bubble{
+  padding:.9rem 1.1rem;font-size:.88rem;line-height:1.7;
+  white-space:pre-wrap;word-break:break-word;
+}
+.msg.user .msg-bubble{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+.msg.assistant .msg-bubble{background:transparent;color:var(--text);border-left:2px solid var(--gold-dim);padding-left:1rem}
+.msg.assistant .msg-bubble.streaming{border-left-color:var(--gold)}
+.stream-cursor{display:inline-block;width:2px;height:1em;background:var(--gold);vertical-align:text-bottom;animation:cursorBlink .7s infinite;margin-left:1px}
+@keyframes cursorBlink{0%,100%{opacity:1}50%{opacity:0}}
+.msg-time{font-size:.6rem;color:var(--text-faint);margin-top:.3rem;font-family:'JetBrains Mono',monospace}
+.msg.user .msg-time{text-align:right}
+.msg-bubble code,.msg-bubble pre{font-family:'JetBrains Mono',monospace;font-size:.78rem;background:rgba(0,0,0,.3);padding:.15rem .35rem}
 </style>
 </head>
 <body>
-<div class="container">
-<div class="header">
-  <h1>🤖 AgentDome</h1>
-  <p>AI智能解题助手 · 拍照即答</p>
+
+<!-- ══════════ LOGIN SCREEN ══════════ -->
+<div class="login-screen" id="loginScreen">
+<div class="login-card">
+  <div class="login-mark">AGENT</div>
+  <h1 class="login-title">AgentDome</h1>
+  <p class="login-sub">AI 智能解题助手</p>
+
+  <!-- Guest login -->
+  <button class="login-btn" id="btnGuest" onclick="doGuestLogin()">
+    游客登录
+  </button>
+
+  <div class="login-divider">或输入昵称</div>
+
+  <!-- Named login -->
+  <input class="login-input" id="nickInput" type="text" placeholder="你的昵称" maxlength="20">
+  <button class="login-btn" id="btnNamed" onclick="doNamedLogin()">
+    进入
+  </button>
+  <div class="login-error hidden" id="loginError"></div>
+</div>
 </div>
 
-<div class="chat-area" id="chatArea">
-  <div class="empty-state" id="emptyState">
-    <div class="icon">📸</div>
-    <div>点击下方上传题目图片</div>
-    <div style="font-size:12px;color:#556;margin-top:8px">支持 ACM算法 / 高等数学 / 考研408</div>
+<!-- ══════════ MAIN APP (hidden initially) ══════════ -->
+<div class="app hidden" id="mainApp">
+<header class="header">
+  <div class="logo-group">
+    <span class="logo-mark">AGENT</span>
+    <h1 class="logo-text">AgentDome</h1>
   </div>
-</div>
+  <div class="user-area">
+    <span class="status-dot" id="statusDot"></span>
+    <span class="status-line" id="statusText">连接中…</span>
+    <div class="user-avatar" id="userAvatar">?</div>
+    <span class="user-name" id="userName">--</span>
+  </div>
+</header>
 
-<div class="bottom-bar">
-  <div id="status">🔗 连接中...</div>
-  <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
-    <div class="upload-icon">📷</div>
-    <div class="upload-text" id="uploadText">点击上传或拖拽题目图片</div>
-    <img class="upload-preview hidden" id="previewImg">
+<div class="main-grid">
+<aside class="sidebar">
+  <div class="upload-card">
+    <div class="card-label">· 上传题目 ·</div>
+    <div class="upload-zone" id="uploadZone">
+      <div class="upload-zone-icon" id="uploadIcon">⊞</div>
+      <div class="upload-zone-text" id="uploadText">拖拽或点击上传</div>
+      <div class="upload-zone-hint">PNG · JPG · 最大 20MB</div>
+      <img class="upload-preview" id="preview">
+    </div>
+    <input type="file" id="fileInput" accept="image/*">
+    <div class="subject-chips">
+      <div class="chip active" data-subject="ACM"><span class="emoji">⊿</span>ACM</div>
+      <div class="chip" data-subject="MATH"><span class="emoji">∫</span>数学</div>
+      <div class="chip" data-subject="CS408"><span class="emoji">⊕</span>408</div>
+    </div>
   </div>
-  <input type="file" id="fileInput" accept="image/*" onchange="handleFile(this)">
-  <div class="subject-picker">
-    <button class="subject-btn active" data-subject="ACM" onclick="selectSubject('ACM',this)">💻 ACM算法</button>
-    <button class="subject-btn" data-subject="MATH" onclick="selectSubject('MATH',this)">📐 高等数学</button>
-    <button class="subject-btn" data-subject="CS408" onclick="selectSubject('CS408',this)">📚 考研408</button>
+  <div class="ornament">━ ◈ ━</div>
+</aside>
+
+<main class="chat-container">
+  <div class="chat-list" id="chatList">
+    <div class="empty-state" id="emptyState">
+      <div class="empty-icon">◈</div>
+      <div class="empty-title">上传一道题目</div>
+      <div class="empty-sub">支持算法竞赛、高等数学、考研 408<br>AI 将实时流式输出解答过程</div>
+    </div>
   </div>
+</main>
 </div>
 </div>
 
 <script>
-var state = {token:null, userId:null, sessionId:null, ws:null, subjectType:'ACM', pendingFile:null};
-var chatArea = document.getElementById('chatArea');
-var emptyState = document.getElementById('emptyState');
-var statusEl = document.getElementById('status');
+var S = {token:null,userId:null,nick:'',sessionId:null,ws:null,subject:'ACM',file:null};
+var $=function(s){return document.querySelector(s);};
+var $$=function(s){return document.querySelectorAll(s);};
 
-// Auto guest login
-async function guestLogin(){
+/* ═══════════════ LOGIN ═══════════════ */
+async function doGuestLogin(){
+  var btn = $('#btnGuest');
+  btn.textContent = '登录中…'; btn.disabled = true;
   try{
-    var resp = await fetch('/api/auth/guest',{method:'POST',headers:{'Content-Type':'application/json'}});
-    var data = await resp.json();
-    state.token = data.token;
-    state.userId = data.userId;
-    statusEl.textContent = '✅ 已连接';
-    statusEl.className = 'connected';
-    connectWS();
-  }catch(e){
-    statusEl.textContent = '❌ 连接失败，请确认后端已启动';
-    console.error(e);
-  }
+    var r = await fetch('/api/auth/guest',{method:'POST',headers:{'Content-Type':'application/json'}});
+    var d = await r.json();
+    if(d.token) enterApp(d.token, d.userId, d.nickname||'游客');
+  }catch(e){ showError('连接失败，请确认后端已启动'); btn.textContent='游客登录'; btn.disabled=false; }
 }
 
+async function doNamedLogin(){
+  var nick = $('#nickInput').value.trim();
+  if(!nick){ showError('请输入昵称'); return; }
+  var btn = $('#btnNamed');
+  btn.textContent = '登录中…'; btn.disabled = true;
+  try{
+    var r = await fetch('/api/auth/guest',{method:'POST',headers:{'Content-Type':'application/json'}});
+    var d = await r.json();
+    if(d.token) enterApp(d.token, d.userId, nick);
+  }catch(e){ showError('连接失败'); btn.textContent='进入'; btn.disabled=false; }
+}
+
+function showError(msg){
+  var el = $('#loginError');
+  el.textContent = msg; el.classList.remove('hidden');
+  setTimeout(function(){ el.classList.add('hidden'); },3000);
+}
+
+// Keyboard submit
+$('#nickInput').onkeydown = function(e){ if(e.key==='Enter') doNamedLogin(); };
+
+function enterApp(token, userId, nick){
+  S.token = token; S.userId = userId; S.nick = nick;
+  $('#loginScreen').classList.add('hidden');
+  $('#mainApp').classList.remove('hidden');
+  $('#userAvatar').textContent = nick.charAt(0);
+  $('#userName').textContent = nick;
+  connectWS();
+}
+
+/* ═══════════════ WEBSOCKET ═══════════════ */
 function connectWS(){
   var proto = location.protocol==='https:'?'wss':'ws';
-  var wsUrl = proto+'://'+location.host+'/ws/chat?token='+state.token;
-  state.ws = new WebSocket(wsUrl);
-  state.ws.onopen = function(){ statusEl.textContent = '✅ 在线'; statusEl.className='connected'; };
-  state.ws.onmessage = function(e){
-    var msg = JSON.parse(e.data);
-    if(msg.type==='connected'){ state.sessionId=msg.sessionId; }
-    else if(msg.type==='solve-start'){ addBubble('assistant','',true); }
-    else if(msg.type==='solve-chunk'){ appendToLast(msg.chunk); }
-    else if(msg.type==='solve-done'){ finishLast(); }
-    else if(msg.type==='solve-error'){ appendToLast('\n\n[错误: '+msg.message+']'); finishLast(); }
-    else if(msg.type==='message'){ addBubble('assistant',msg.content); }
+  S.ws = new WebSocket(proto+'://'+location.host+'/ws/chat?token='+S.token);
+  S.ws.onopen = function(){ setStatus(true,'已连接'); };
+  S.ws.onmessage = function(e){
+    var m = JSON.parse(e.data);
+    if(m.type==='connected'){ S.sessionId = m.sessionId; }
+    else if(m.type==='solve-start'){ addBubble('assistant','',true); }
+    else if(m.type==='solve-chunk'){ appendLast(m.chunk); }
+    else if(m.type==='solve-done'){ finishLast(); }
+    else if(m.type==='solve-error'){ appendLast('\n\n[错误: '+m.message+']'); finishLast(); }
+    else if(m.type==='message'){ addBubble('assistant',m.content); }
   };
-  state.ws.onclose = function(){ statusEl.textContent='🔗 已断开'; statusEl.className=''; setTimeout(guestLogin,3000); };
-  state.ws.onerror = function(){ statusEl.textContent='⚠️ 连接错误'; statusEl.className=''; };
+  S.ws.onclose = function(){ setStatus(false,'断开,重连中…'); setTimeout(connectWS,3000); };
+  S.ws.onerror = function(){ setStatus(false,'连接错误'); };
 }
 
-function addBubble(role,content,streaming){
-  emptyState.classList.add('hidden');
-  var div = document.createElement('div');
-  div.className = 'msg '+role;
-  div.innerHTML = '<div class="bubble'+(streaming?' streaming':'')+'">'+escapeHtml(content)+(streaming?'<span class="cursor">▌</span>':'')+'</div><div class="time">'+new Date().toLocaleTimeString()+'</div>';
-  chatArea.appendChild(div);
-  chatArea.scrollTop = chatArea.scrollHeight;
+function setStatus(on,msg){
+  $('#statusDot').className = 'status-dot'+(on?' on':'');
+  $('#statusText').textContent = msg;
 }
 
-function appendToLast(text){
-  var msgs = chatArea.querySelectorAll('.msg.assistant');
-  var last = msgs[msgs.length-1];
-  if(!last) return;
-  var bubble = last.querySelector('.bubble');
-  bubble.innerHTML = bubble.innerHTML.replace('<span class="cursor">▌</span>','') + escapeHtml(text) + '<span class="cursor">▌</span>';
-  chatArea.scrollTop = chatArea.scrollHeight;
+/* ═══════════════ CHAT ═══════════════ */
+function hideEmpty(){ var el=$('#emptyState'); if(el) el.style.display='none'; }
+
+function addBubble(role,text,streaming){
+  hideEmpty();
+  var div = document.createElement('div'); div.className='msg '+role;
+  var av = role==='assistant'?'AI':(S.nick.charAt(0)||'?');
+  var cls = streaming?' streaming':'';
+  div.innerHTML='<div class="msg-avatar">'+av+'</div><div class="msg-body">'+
+    '<div class="msg-bubble'+cls+'">'+esc(text)+(streaming?'<span class="stream-cursor"></span>':'')+'</div>'+
+    '<div class="msg-time">'+now()+'</div></div>';
+  $('#chatList').appendChild(div);
+  div.scrollIntoView({behavior:'smooth',block:'end'});
+}
+
+function appendLast(text){
+  var msgs = $$('#chatList .msg.assistant');
+  var last = msgs[msgs.length-1]; if(!last) return;
+  var b = last.querySelector('.msg-bubble');
+  b.innerHTML = b.innerHTML.replace('<span class="stream-cursor"></span>','') + esc(text) + '<span class="stream-cursor"></span>';
+  last.scrollIntoView({behavior:'smooth',block:'end'});
 }
 
 function finishLast(){
-  var msgs = chatArea.querySelectorAll('.msg.assistant');
-  var last = msgs[msgs.length-1];
-  if(!last) return;
-  var bubble = last.querySelector('.bubble');
-  bubble.classList.remove('streaming');
-  bubble.innerHTML = bubble.innerHTML.replace('<span class="cursor">▌</span>','');
+  var msgs = $$('#chatList .msg.assistant');
+  var last = msgs[msgs.length-1]; if(!last) return;
+  var b = last.querySelector('.msg-bubble');
+  b.classList.remove('streaming');
+  b.innerHTML = b.innerHTML.replace('<span class="stream-cursor"></span>','');
 }
 
-function escapeHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>'); }
+function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function now(){ return new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'}); }
 
-function selectSubject(type,btn){
-  state.subjectType = type;
-  document.querySelectorAll('.subject-btn').forEach(function(b){ b.classList.remove('active'); });
-  btn.classList.add('active');
-}
-
-function handleFile(input){
-  var file = input.files[0];
-  if(!file) return;
-  state.pendingFile = file;
-  document.getElementById('uploadText').textContent = '已选择: '+file.name;
-  document.getElementById('uploadArea').classList.add('has-file');
-
-  var reader = new FileReader();
-  reader.onload = function(e){
-    var img = document.getElementById('previewImg');
-    img.src = e.target.result;
-    img.classList.remove('hidden');
+/* ═══════════════ SUBJECT ═══════════════ */
+$$('.chip').forEach(function(c){
+  c.onclick = function(){
+    $$('.chip').forEach(function(x){x.classList.remove('active')});
+    c.classList.add('active'); S.subject = c.dataset.subject;
   };
+});
+
+/* ═══════════════ UPLOAD ═══════════════ */
+var zone = $('#uploadZone'), input = $('#fileInput');
+zone.onclick = function(){ input.click(); };
+zone.ondragover = function(e){ e.preventDefault(); zone.classList.add('drag-over'); };
+zone.ondragleave = function(){ zone.classList.remove('drag-over'); };
+zone.ondrop = function(e){
+  e.preventDefault(); zone.classList.remove('drag-over');
+  if(e.dataTransfer.files[0]){ input.files = e.dataTransfer.files; processFile(e.dataTransfer.files[0]); }
+};
+input.onchange = function(){ if(input.files[0]) processFile(input.files[0]); };
+
+function processFile(file){
+  S.file = file;
+  $('#uploadText').textContent = file.name;
+  $('#uploadIcon').textContent = '✓';
+  zone.style.borderColor = 'var(--gold-dim)';
+  var reader = new FileReader();
+  reader.onload = function(e){ $('#preview').src=e.target.result; $('#preview').classList.add('show'); };
   reader.readAsDataURL(file);
-  uploadImage();
+  upload();
 }
 
-async function uploadImage(){
-  if(!state.pendingFile || !state.token) return;
+async function upload(){
+  if(!S.file||!S.token) return;
   var form = new FormData();
-  form.append('file', state.pendingFile);
-  form.append('subjectType', state.subjectType);
-  form.append('sessionId', state.sessionId||'web');
-  form.append('token', state.token);
+  form.append('file',S.file); form.append('subjectType',S.subject);
+  form.append('sessionId',S.sessionId||'web'); form.append('token',S.token);
 
-  addBubble('user','[📷 '+state.subjectType+' 题目图片]');
-  addBubble('assistant','🔍 正在识别图片文字...');
+  addBubble('user','[ '+S.subject+' 题目图片 ]');
+  addBubble('assistant','⟳ 识别图片文字…');
 
   try{
-    var resp = await fetch('/api/chat/upload?token='+state.token,{method:'POST',body:form});
-    var data = await resp.json();
-    if(data.code===200){
-      var lastMsgs = chatArea.querySelectorAll('.msg.assistant');
-      var lastBubble = lastMsgs[lastMsgs.length-1].querySelector('.bubble');
-      lastBubble.innerHTML = '📷 识别结果：<br><br>'+escapeHtml(data.data.cleanedText);
-
-      // Send solve via WebSocket
-      if(state.ws && state.ws.readyState===WebSocket.OPEN){
-        state.ws.send(JSON.stringify({type:'solve',text:data.data.cleanedText,subjectType:data.data.subjectType}));
+    var r = await fetch('/api/chat/upload?token='+S.token,{method:'POST',body:form});
+    var d = await r.json();
+    var msgs = $$('#chatList .msg.assistant');
+    var lastB = msgs[msgs.length-1].querySelector('.msg-bubble');
+    if(d.code===200){
+      lastB.innerHTML = '📷 识别结果：<br><br>'+esc(d.data.cleanedText);
+      lastB.style.borderLeftColor = 'var(--sage)';
+      if(S.ws&&S.ws.readyState===WebSocket.OPEN){
+        S.ws.send(JSON.stringify({type:'solve',text:d.data.cleanedText,subjectType:d.data.subjectType}));
       }
     }else{
-      addBubble('assistant','❌ 识别失败: '+ (data.message||'未知错误'));
+      lastB.innerHTML = '✕ 识别失败';
+      lastB.style.borderLeftColor = 'var(--red)';
     }
-  }catch(e){
-    addBubble('assistant','❌ 网络错误: '+e.message);
-  }
-
-  // Reset
-  state.pendingFile = null;
-  document.getElementById('uploadText').textContent = '点击上传或拖拽题目图片';
-  document.getElementById('uploadArea').classList.remove('has-file');
-  document.getElementById('previewImg').classList.add('hidden');
-  document.getElementById('fileInput').value = '';
+  }catch(e){ addBubble('assistant','✕ 网络错误: '+e.message); }
+  resetUpload();
 }
 
-// Drag & drop
-var uploadArea = document.getElementById('uploadArea');
-uploadArea.addEventListener('dragover',function(e){ e.preventDefault(); uploadArea.style.borderColor='#4A90D9'; });
-uploadArea.addEventListener('dragleave',function(){ uploadArea.style.borderColor=''; });
-uploadArea.addEventListener('drop',function(e){ e.preventDefault(); uploadArea.style.borderColor=''; var f=e.dataTransfer.files[0]; if(f){ document.getElementById('fileInput').files=e.dataTransfer.files; handleFile(document.getElementById('fileInput')); } });
-
-guestLogin();
+function resetUpload(){
+  S.file=null; input.value='';
+  $('#uploadText').textContent='拖拽或点击上传';
+  $('#uploadIcon').textContent='⊞'; zone.style.borderColor='';
+  $('#preview').classList.remove('show');
+}
 </script>
 </body>
 </html>
