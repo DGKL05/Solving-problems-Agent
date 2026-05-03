@@ -433,20 +433,23 @@ function finishLast(){
 
 function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function md(s){
-  try{ var html = marked.parse(s); return renderMath(html); }
-  catch(e){ return esc(s); }
-}
-function renderMath(html){
-  // Replace LaTeX delimiters and render with KaTeX
   try{
-    // Display math: $$...$$ or \[...\]
-    html = html.replace(/\$\$([\s\S]*?)\$\$/g, function(_,f){ try{return katex.renderToString(f.trim(),{displayMode:true,throwOnError:false})}catch(e){return _} });
-    html = html.replace(/\\\[([\s\S]*?)\\\]/g, function(_,f){ try{return katex.renderToString(f.trim(),{displayMode:true,throwOnError:false})}catch(e){return _} });
-    // Inline math: $...$ or \(...\)
-    html = html.replace(/\\\(([\s\S]*?)\\\)/g, function(_,f){ try{return katex.renderToString(f.trim(),{displayMode:false,throwOnError:false})}catch(e){return _} });
-    html = html.replace(/\$([^\$]+?)\$/g, function(_,f){ try{return katex.renderToString(f.trim(),{displayMode:false,throwOnError:false})}catch(e){return _} });
-  }catch(e){}
-  return html;
+    var html = marked.parse(s);
+    // Use KaTeX auto-render for robust math handling
+    var div = document.createElement('div');
+    div.innerHTML = html;
+    renderMathInElement(div, {
+      delimiters: [
+        {left:'$$',right:'$$',display:true},
+        {left:'\\[',right:'\\]',display:true},
+        {left:'$',right:'$',display:false},
+        {left:'\\(',right:'\\)',display:false}
+      ],
+      throwOnError: false,
+      strict: false
+    });
+    return div.innerHTML;
+  }catch(e){ return esc(s); }
 }
 function now(){ return new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'}); }
 
