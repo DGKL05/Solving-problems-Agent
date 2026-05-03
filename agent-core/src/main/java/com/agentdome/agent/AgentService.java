@@ -4,6 +4,7 @@ import com.agentdome.agent.memory.SessionMemoryManager;
 import com.agentdome.agent.memory.SummaryService;
 import com.agentdome.agent.prompt.PromptTemplateManager;
 import com.agentdome.agent.tools.*;
+import com.agentdome.common.config.UserProblemTracker;
 import org.springframework.stereotype.Service;
 import java.util.UUID;
 
@@ -19,6 +20,7 @@ public class AgentService {
     private final QueryMistakesTool queryMistakesTool;
     private final RecommendSimilarTool recommendSimilarTool;
     private final ExplainConceptTool explainConceptTool;
+    private final UserProblemTracker problemTracker;
 
     public AgentService(PromptTemplateManager promptManager,
                         @org.springframework.beans.factory.annotation.Autowired(required = false) SessionMemoryManager memoryManager,
@@ -27,7 +29,8 @@ public class AgentService {
                         AddToMistakesTool addToMistakesTool,
                         QueryMistakesTool queryMistakesTool,
                         RecommendSimilarTool recommendSimilarTool,
-                        ExplainConceptTool explainConceptTool) {
+                        ExplainConceptTool explainConceptTool,
+                        UserProblemTracker problemTracker) {
         this.promptManager = promptManager;
         this.memoryManager = memoryManager;
         this.summaryService = summaryService;
@@ -36,6 +39,7 @@ public class AgentService {
         this.queryMistakesTool = queryMistakesTool;
         this.recommendSimilarTool = recommendSimilarTool;
         this.explainConceptTool = explainConceptTool;
+        this.problemTracker = problemTracker;
     }
 
     public String newSession(Long userId) {
@@ -60,7 +64,12 @@ public class AgentService {
         String response;
         if (userMessage.contains("错题") || userMessage.contains("mistake")) {
             if (userMessage.contains("加入") || userMessage.contains("添加")) {
-                response = addToMistakesTool.addToMistakes(userId, 1L, sessionId, "manual", userMessage, null);
+                Long pid = problemTracker.getLastProblem(userId);
+                if (pid == null) {
+                    response = "请先解答一道题目，然后再加入错题本。";
+                } else {
+                    response = addToMistakesTool.addToMistakes(userId, pid, sessionId, "manual", userMessage, null);
+                }
             } else {
                 response = "错题集功能：\n" + queryMistakesTool.queryMistakes(userId).toString();
             }

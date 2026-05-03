@@ -4,6 +4,7 @@ import com.agentdome.agent.AgentService;
 import com.agentdome.agent.QwenService;
 import com.agentdome.common.repository.ProblemRepository;
 import com.agentdome.common.entity.Problem;
+import com.agentdome.common.config.UserProblemTracker;
 import com.agentdome.common.util.JwtUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -25,15 +26,17 @@ public class WebSocketConfig implements WebSocketConfigurer {
     private final ProblemRepository problemRepo;
     private final JwtUtil jwtUtil;
     private final WsSessionManager sessionManager;
+    private final UserProblemTracker problemTracker;
 
     public WebSocketConfig(AgentService agentService, QwenService qwenService,
                            ProblemRepository problemRepo, JwtUtil jwtUtil,
-                           WsSessionManager sessionManager) {
+                           WsSessionManager sessionManager, UserProblemTracker problemTracker) {
         this.agentService = agentService;
         this.qwenService = qwenService;
         this.problemRepo = problemRepo;
         this.jwtUtil = jwtUtil;
         this.sessionManager = sessionManager;
+        this.problemTracker = problemTracker;
     }
 
     @Override
@@ -102,6 +105,7 @@ public class WebSocketConfig implements WebSocketConfigurer {
                                 problem.setCleanedText(text);
                                 problem.setSolutionText(fullText);
                                 problemRepo.save(problem);
+                                problemTracker.setLastProblem(userId, problem.getId());
                                 sendJson(session, Map.of("type", "problem-saved", "problemId", problem.getId()));
                             },
                             error -> sendJson(session, Map.of("type", "solve-error", "message", error.getMessage()))
