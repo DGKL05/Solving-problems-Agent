@@ -15,7 +15,7 @@ public class QueryMistakesTool {
         this.mistakeService = mistakeService;
     }
 
-    @Tool("Query the user's mistake collection. Returns list of mistakes.")
+    @Tool("查询用户的错题集，返回错题列表")
     public List<MistakeDTO> queryMistakes(long userId) {
         return mistakeService.getUserMistakes(userId);
     }

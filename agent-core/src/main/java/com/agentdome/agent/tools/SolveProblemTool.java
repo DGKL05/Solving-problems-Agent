@@ -18,7 +18,7 @@ public class SolveProblemTool {
         this.promptManager = promptManager;
     }
 
-    @Tool("Solve a problem from an uploaded image. Call when user asks to solve a problem.")
+    @Tool("根据用户上传的题目图片进行解题")
     public String solveProblem(long userId, String subjectType, String cleanedText, String imageId) {
         String prompt = promptManager.buildSolvePrompt(subjectType, cleanedText);
 
@@ -28,7 +28,7 @@ public class SolveProblemTool {
         problem.setSubjectType(Problem.SubjectType.valueOf(subjectType));
         problem.setOriginalImageId(imageId);
         problem.setCleanedText(cleanedText);
-        problem.setSolutionText("Processing via AgentService...");
+        problem.setSolutionText("正在通过AgentService处理...");
         problemRepo.save(problem);
 
         return String.format("[解题请求已接收] 科目：%s, 题目：%s...", subjectType,

@@ -15,7 +15,7 @@ public class RecommendSimilarTool {
         this.problemRepo = problemRepo;
     }
 
-    @Tool("Recommend similar problems based on the current problem's tags and subject type.")
+    @Tool("根据当前题目的标签和科目类型推荐相似题目")
     public String recommendSimilar(long userId, String subjectType, int count) {
         List<Problem> problems = problemRepo.findByUserIdAndSubjectType(userId,
                 Problem.SubjectType.valueOf(subjectType));

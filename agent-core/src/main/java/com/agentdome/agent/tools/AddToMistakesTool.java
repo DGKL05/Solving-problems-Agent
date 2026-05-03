@@ -14,7 +14,7 @@ public class AddToMistakesTool {
         this.mistakeService = mistakeService;
     }
 
-    @Tool("Add the current problem to the user's mistake collection.")
+    @Tool("将当前题目加入用户的错题集")
     public String addToMistakes(long userId, long problemId, String sessionId,
                                 String errorType, String memo, List<String> tags) {
         mistakeService.addToMistakes(userId, problemId, sessionId, errorType, memo, tags);
