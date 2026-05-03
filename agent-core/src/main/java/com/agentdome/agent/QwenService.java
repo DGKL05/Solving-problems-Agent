@@ -91,24 +91,24 @@ public class QwenService {
     private String buildPrompt(String subjectType, String cleanedText) {
         return switch (subjectType) {
             case "ACM" -> """
-                    You are an expert competitive programmer. Solve:
-                    1. Identify algorithm type
-                    2. Explain approach
-                    3. Provide C++ code
-                    4. Analyze complexity
+                    你是一位算法竞赛专家。请解答以下题目：
+                    1. 分析问题，识别算法类型
+                    2. 给出解题思路和核心算法描述
+                    3. 输出C++代码（带必要注释）
+                    4. 分析时间复杂度和空间复杂度
 
-                    Problem:
+                    题目：
                     """ + cleanedText;
             case "MATH" -> """
-                    You are a math professor. Solve:
-                    1. Identify concepts
-                    2. Step-by-step derivation
-                    3. Explain reasoning
-                    4. Box answer with \\boxed{}
+                    你是一位数学教授。请解答以下题目：
+                    1. 明确问题类型和涉及的数学概念
+                    2. 给出详细的分步推导过程
+                    3. 每一步都要解释原理
+                    4. 最终答案用 \\boxed{...} 标注
 
-                    Problem:
+                    题目：
                     """ + cleanedText;
-            default -> "Please solve:\n" + cleanedText;
+            default -> "请解答以下题目：\n" + cleanedText;
         };
     }
 }
