@@ -17,8 +17,14 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 100)
+    @Column(unique = true, length = 100)
     private String openid;
+
+    @Column(unique = true, length = 50)
+    private String username;
+
+    @Column(length = 255)
+    private String password;
 
     @Column(length = 100)
     private String nickname;

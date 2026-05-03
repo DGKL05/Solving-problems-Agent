@@ -294,14 +294,35 @@ mjx-container[jax=CHTML][display=true]{margin:.7em 0;overflow-x:auto}
 
 <!-- ═══════ LOGIN ═══════ -->
 <div class="login-screen" id="loginScreen">
-<div class="login-card">
+<div class="login-card" id="loginCard">
   <div class="login-mark">ACADEMIC</div>
   <div class="login-title">AgentDome</div>
   <div class="login-sub">AI 智能解题助手 · 课堂演示</div>
-  <button class="btn btn-primary" id="btnGuest" onclick="doGuestLogin()">游客登录</button>
-  <div class="login-divider">或</div>
-  <input class="login-input" id="nickInput" placeholder="输入你的名字" maxlength="20">
-  <button class="btn btn-primary" id="btnNamed" onclick="doNamedLogin()">进入课堂</button>
+
+  <!-- Tab switcher -->
+  <div class="tabs" style="justify-content:center;margin-bottom:1.2rem;gap:.4rem">
+    <div class="tab active" data-auth="login" onclick="switchAuthTab('login')">登录</div>
+    <div class="tab" data-auth="register" onclick="switchAuthTab('register')">注册</div>
+  </div>
+
+  <!-- Login form -->
+  <div id="authLoginForm">
+    <button class="btn btn-primary" id="btnGuest" onclick="doGuestLogin()">游客登录</button>
+    <div class="login-divider">或密码登录</div>
+    <input class="login-input" id="loginUser" placeholder="用户名">
+    <input class="login-input" id="loginPass" type="password" placeholder="密码">
+    <button class="btn btn-primary" id="btnLogin" onclick="doWebLogin()">登录</button>
+  </div>
+
+  <!-- Register form (hidden by default) -->
+  <div id="authRegisterForm" class="hidden">
+    <input class="login-input" id="regUser" placeholder="用户名">
+    <input class="login-input" id="regNick" placeholder="昵称（选填）">
+    <input class="login-input" id="regPass" type="password" placeholder="密码">
+    <input class="login-input" id="regPass2" type="password" placeholder="确认密码">
+    <button class="btn btn-primary" id="btnRegister" onclick="doRegister()">注册</button>
+  </div>
+
   <div class="hidden" id="loginError"></div>
 </div>
 </div>
@@ -321,6 +342,7 @@ mjx-container[jax=CHTML][display=true]{margin:.7em 0;overflow-x:auto}
     <span class="status-dot" id="statusDot"></span>
     <span id="statusText">连接中…</span>
     <span style="margin-left:.5rem" id="userName">--</span>
+    <button onclick="doLogout()" style="margin-left:.8rem;background:none;border:1px solid var(--border);color:var(--ink2);cursor:pointer;padding:.2rem .7rem;border-radius:6px;font-size:.7rem;font-family:'Source Serif 4',Georgia,serif">退出</button>
   </div>
 </div>
 
@@ -391,6 +413,13 @@ function switchTab(tab){
   $('#mistakesPanel').style.display=tab==='mistakes'?'block':'none';
   if(tab==='mistakes')loadMistakes();
 }
+// ── Auth Tabs ──
+function switchAuthTab(tab){
+  $$('#loginCard .tab').forEach(function(t){t.classList.toggle('active',t.dataset.auth===tab)});
+  $('#authLoginForm').classList.toggle('hidden',tab!=='login');
+  $('#authRegisterForm').classList.toggle('hidden',tab!=='register');
+}
+
 // ── Login ──
 async function doGuestLogin(){
   var b=$('#btnGuest');b.textContent='登录中…';b.disabled=true;
@@ -400,17 +429,39 @@ async function doGuestLogin(){
     if(d.token)enterApp(d.token,d.userId,d.nickname||'观众');
   }catch(e){showError('连接失败，请确认后端已启动');b.textContent='游客登录';b.disabled=false;}
 }
-async function doNamedLogin(){
-  var n=$('#nickInput').value.trim();if(!n){showError('请输入名字');return;}
-  var b=$('#btnNamed');b.textContent='登录中…';b.disabled=true;
+async function doWebLogin(){
+  var u=$('#loginUser').value.trim(),p=$('#loginPass').value;
+  if(!u||!p){showError('请输入用户名和密码');return;}
+  var b=$('#btnLogin');b.textContent='登录中…';b.disabled=true;
   try{
-    var r=await fetch('/api/auth/guest',{method:'POST',headers:{'Content-Type':'application/json'}});
+    var r=await fetch('/api/auth/web-login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p})});
     var d=await r.json();
-    if(d.token)enterApp(d.token,d.userId,n);
-  }catch(e){showError('连接失败');b.textContent='进入课堂';b.disabled=false;}
+    if(d.token)enterApp(d.token,d.userId,d.nickname||u);
+    else showError(d.message||'登录失败');
+  }catch(e){showError('连接失败')}
+  b.textContent='登录';b.disabled=false;
+}
+async function doRegister(){
+  var u=$('#regUser').value.trim(),n=$('#regNick').value.trim(),p=$('#regPass').value,p2=$('#regPass2').value;
+  if(!u||!p){showError('用户名和密码不能为空');return;}
+  if(p!==p2){showError('两次密码不一致');return;}
+  var b=$('#btnRegister');b.textContent='注册中…';b.disabled=true;
+  try{
+    var r=await fetch('/api/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u,password:p,nickname:n||u})});
+    var d=await r.json();
+    if(d.token)enterApp(d.token,d.userId,d.nickname||n||u);
+    else showError(d.message||'注册失败');
+  }catch(e){showError('连接失败')}
+  b.textContent='注册';b.disabled=false;
+}
+function doLogout(){
+  if(S.ws)S.ws.close();
+  S={token:null,userId:null,nick:'',sessionId:null,ws:null,subject:'ACM',pendingFile:null,currentTab:'solve'};
+  $('#mainApp').classList.add('hidden');$('#loginScreen').classList.remove('hidden');
+  $('#chatArea').innerHTML='<div class="empty-state" id="emptyState"><div class="empty-icon">◈</div><div class="empty-title">AgentDome 解题助手</div><div class="empty-sub">上传题目图片，AI 实时流式输出解答<br>支持追问和讨论</div><button class="upload-hint-btn" onclick="document.getElementById(\'fileInput\').click()">📷 拍照/上传题目</button></div>';
+  $('#userName').textContent='--';setStatus(false,'已退出');
 }
 function showError(m){var e=$('#loginError');e.textContent=m;e.classList.remove('hidden');setTimeout(function(){e.classList.add('hidden')},3000)}
-$('#nickInput').onkeydown=function(e){if(e.key==='Enter')doNamedLogin()}
 function enterApp(t,u,n){
   S.token=t;S.userId=u;S.nick=n;
   $('#loginScreen').classList.add('hidden');$('#mainApp').classList.remove('hidden');
