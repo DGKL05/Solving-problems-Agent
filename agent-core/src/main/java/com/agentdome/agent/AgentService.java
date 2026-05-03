@@ -21,7 +21,7 @@ public class AgentService {
     private final ExplainConceptTool explainConceptTool;
 
     public AgentService(PromptTemplateManager promptManager,
-                        SessionMemoryManager memoryManager,
+                        @org.springframework.beans.factory.annotation.Autowired(required = false) SessionMemoryManager memoryManager,
                         SummaryService summaryService,
                         SolveProblemTool solveProblemTool,
                         AddToMistakesTool addToMistakesTool,
@@ -41,8 +41,10 @@ public class AgentService {
     public String newSession(Long userId) {
         String sessionId = UUID.randomUUID().toString();
         String prevSummary = summaryService.getPreviousSummary(userId);
-        memoryManager.appendMessage(sessionId, "system",
-                promptManager.getSystemPrompt() + "\n历史学习摘要：\n" + prevSummary);
+        if (memoryManager != null) {
+            memoryManager.appendMessage(sessionId, "system",
+                    promptManager.getSystemPrompt() + "\n历史学习摘要：\n" + prevSummary);
+        }
         return sessionId;
     }
 
@@ -50,7 +52,9 @@ public class AgentService {
      * Process a user text message. Agent determines intent and delegates to tools.
      */
     public String processMessage(String sessionId, Long userId, String userMessage) {
-        memoryManager.appendMessage(sessionId, "user", userMessage);
+        if (memoryManager != null) {
+            memoryManager.appendMessage(sessionId, "user", userMessage);
+        }
 
         // For MVP: intent-based dispatch matching against tool triggers
         String response;
@@ -68,7 +72,9 @@ public class AgentService {
             response = "收到你的消息：「" + userMessage + "」\n\n请告诉我你需要什么帮助？\n- 拍照解题（上传图片即可）\n- 加入错题集\n- 查询错题\n- 推荐相似题目\n- 解释某个概念";
         }
 
-        memoryManager.appendMessage(sessionId, "assistant", response);
+        if (memoryManager != null) {
+            memoryManager.appendMessage(sessionId, "assistant", response);
+        }
         return response;
     }
 }

@@ -1,14 +1,19 @@
 <view class="container">
   <view wx:if="{{!userInfo}}" class="login-section">
+    <view class="login-hint">🔐 登录后可同步数据</view>
     <button bindtap="onLogin" class="login-btn">微信一键登录</button>
   </view>
 
   <view wx:else class="profile-section">
-    <view class="avatar">
+    <button class="avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
       <image wx:if="{{userInfo.avatarUrl}}" src="{{userInfo.avatarUrl}}" mode="aspectFill"/>
-      <view wx:else class="avatar-placeholder">👤</view>
+      <view wx:else class="avatar-placeholder">{{avatarChar}}</view>
+    </button>
+    <view class="nickname-wrap">
+      <input class="nickname-input" type="nickname" value="{{userInfo.nickname}}" bindblur="onNicknameBlur" bindfocus="onNickFocus" placeholder="{{userInfo.avatarUrl ? '👆 输入昵称' : '点击设置昵称'}}" focus="{{nickFocus}}"/>
     </view>
-    <text class="nickname">{{userInfo.nickname}}</text>
+    <text class="uid">ID: {{userInfo.userId}}</text>
+    <text class="login-status">✅ 已登录</text>
 
     <view class="stats">
       <view class="stat-item">
@@ -29,7 +34,7 @@
   <view class="settings">
     <view class="setting-item" bindtap="onClearCache">
       <text>清除缓存</text>
-      <text>→</text>
+      <text class="arrow">→</text>
     </view>
   </view>
 </view>

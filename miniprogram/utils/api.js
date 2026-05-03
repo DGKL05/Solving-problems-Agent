@@ -1,77 +1,100 @@
-const app = getApp();
-const auth = require('./auth');
+var app = getApp();
+
+function getToken() {
+  return app.globalData.token || wx.getStorageSync('token');
+}
+
+function doLogin(callback) {
+  wx.login({
+    success(res) {
+      if (!res.code) { return; }
+      wx.request({
+        url: app.globalData.baseUrl + '/api/auth/login',
+        method: 'POST',
+        data: { code: res.code },
+        success(resp) {
+          var body = resp.data;
+          if (typeof body === 'string') body = JSON.parse(body);
+          // AuthController returns LoginResponse directly (token, userId, etc.)
+          if (body.token) {
+            wx.setStorageSync('token', body.token);
+            wx.setStorageSync('userId', body.userId);
+            app.globalData.token = body.token;
+            app.globalData.userId = body.userId;
+            if (callback) callback();
+          }
+        }
+      });
+    }
+  });
+}
 
 function request(options) {
-  const token = auth.getToken();
+  var token = getToken();
 
-  return new Promise((resolve, reject) => {
+  return new Promise(function(resolve, reject) {
     wx.request({
-      url: `${app.globalData.baseUrl}${options.url}`,
+      url: app.globalData.baseUrl + options.url,
       method: options.method || 'GET',
       data: options.data,
       header: {
-        'Authorization': `Bearer ${token}`,
+        'Authorization': 'Bearer ' + token,
         'Content-Type': 'application/json'
       },
-      success(res) {
+      success: function(res) {
         if (res.statusCode === 200) {
           resolve(res.data);
         } else if (res.statusCode === 401) {
-          auth.login(() => {
-            request(options).then(resolve).catch(reject);
+          doLogin(function() {
+            request(options).then(resolve, reject);
           });
         } else {
           reject(res.data);
         }
       },
-      fail(err) {
-        reject(err);
-      }
+      fail: function(err) { reject(err); }
     });
   });
 }
 
 function doUpload(filePath, subjectType, sessionId, resolve, reject) {
-  const token = auth.getToken();
+  var token = getToken();
   if (!token) {
-    auth.login(() => doUpload(filePath, subjectType, sessionId, resolve, reject));
+    doLogin(function() { doUpload(filePath, subjectType, sessionId, resolve, reject); });
     return;
   }
 
   wx.uploadFile({
-    url: `${app.globalData.baseUrl}/api/chat/upload`,
+    url: app.globalData.baseUrl + '/api/chat/upload?token=' + token,
     filePath: filePath,
     name: 'file',
     formData: {
-      token: token,
       subjectType: subjectType,
       sessionId: sessionId
     },
     header: {
-      'Authorization': `Bearer ${token}`
+      'Authorization': 'Bearer ' + token
     },
-    success(res) {
+    success: function(res) {
       try {
-        const data = JSON.parse(res.data);
+        var data = JSON.parse(res.data);
         if (data.code === 401) {
-          auth.login(() => doUpload(filePath, subjectType, sessionId, resolve, reject));
+          doLogin(function() { doUpload(filePath, subjectType, sessionId, resolve, reject); });
         } else {
           resolve(data);
         }
       } catch (e) {
-        reject(new Error('解析服务器响应失败: ' + (res.data || '').substring(0, 100)));
+        reject(new Error('解析服务器响应失败'));
       }
     },
-    fail(err) {
-      reject(err);
-    }
+    fail: function(err) { reject(err); }
   });
 }
 
 function upload(filePath, subjectType, sessionId) {
-  return new Promise((resolve, reject) => {
+  return new Promise(function(resolve, reject) {
     doUpload(filePath, subjectType, sessionId, resolve, reject);
   });
 }
 
-module.exports = { request, upload };
+module.exports = { request: request, upload: upload };

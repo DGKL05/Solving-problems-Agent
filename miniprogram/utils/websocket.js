@@ -1,39 +1,36 @@
-const app = getApp();
-const auth = require('./auth');
-
-let socketTask = null;
-let messageHandler = null;
+var app = getApp();
+var socketTask = null;
+var messageHandler = null;
 
 function connect(onMessage) {
   messageHandler = onMessage;
-  const token = auth.getToken();
+  var token = app.globalData.token || wx.getStorageSync('token');
+  var wsUrl = app.globalData.baseUrl.replace('https', 'wss').replace('http', 'ws');
+  console.log('[WS] connecting to:', wsUrl + '/ws/chat?token=' + (token ? token.substring(0,20) : 'null'));
 
   socketTask = wx.connectSocket({
-    url: `${app.globalData.baseUrl.replace('https', 'wss')}/ws/chat?token=${token}`,
-    success() {
-      console.log('WebSocket connecting...');
-    }
+    url: wsUrl + '/ws/chat?token=' + token
   });
 
-  socketTask.onOpen(() => {
-    console.log('WebSocket connected');
+  socketTask.onOpen(function() {
+    console.log('[WS] connected');
   });
 
-  socketTask.onMessage((res) => {
+  socketTask.onMessage(function(res) {
     try {
-      const msg = JSON.parse(res.data);
+      var msg = JSON.parse(res.data);
       if (messageHandler) messageHandler(msg);
     } catch (e) {
-      console.error('WebSocket parse error:', e);
+      console.error('[WS] parse error:', e);
     }
   });
 
-  socketTask.onError((err) => {
-    console.error('WebSocket error:', err);
+  socketTask.onError(function(err) {
+    console.error('[WS] error:', err);
   });
 
-  socketTask.onClose(() => {
-    console.log('WebSocket closed');
+  socketTask.onClose(function() {
+    console.log('[WS] closed');
   });
 }
 
@@ -41,10 +38,8 @@ function send(text) {
   if (socketTask) {
     socketTask.send({
       data: text,
-      success() {},
-      fail(err) {
-        console.error('Send failed:', err);
-      }
+      success: function() {},
+      fail: function(err) { console.error('[WS] send fail:', err); }
     });
   }
 }
@@ -56,4 +51,4 @@ function close() {
   }
 }
 
-module.exports = { connect, send, close };
+module.exports = { connect: connect, send: send, close: close };

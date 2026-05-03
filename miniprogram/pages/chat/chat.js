@@ -1,6 +1,31 @@
 const api = require('../../utils/api');
-const auth = require('../../utils/auth');
 const websocket = require('../../utils/websocket');
+
+function doLogin(callback) {
+  wx.login({
+    success(res) {
+      if (!res.code) { wx.showToast({ title: '登录失败', icon: 'none' }); return; }
+      wx.request({
+        url: getApp().globalData.baseUrl + '/api/auth/login',
+        method: 'POST',
+        data: { code: res.code },
+        success(resp) {
+          var body = resp.data;
+          if (typeof body === 'string') body = JSON.parse(body);
+          // AuthController returns LoginResponse directly
+          if (body.token) {
+            wx.setStorageSync('token', body.token);
+            wx.setStorageSync('userId', body.userId);
+            getApp().globalData.token = body.token;
+            getApp().globalData.userId = body.userId;
+            if (callback) callback();
+          }
+        },
+        fail() { wx.showToast({ title: '网络错误', icon: 'none' }); }
+      });
+    }
+  });
+}
 
 Page({
   data: {
@@ -12,7 +37,7 @@ Page({
   },
 
   onLoad() {
-    auth.login(() => {
+    doLogin(() => {
       websocket.connect((msg) => {
         if (msg.type === 'connected') {
           this.setData({ sessionId: msg.sessionId });

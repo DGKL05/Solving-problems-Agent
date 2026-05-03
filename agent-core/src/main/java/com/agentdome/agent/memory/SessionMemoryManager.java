@@ -1,5 +1,6 @@
 package com.agentdome.agent.memory;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import java.util.ArrayList;
@@ -8,6 +9,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Component
+@ConditionalOnBean(RedisTemplate.class)
 public class SessionMemoryManager {
 
     private final RedisTemplate<String, Object> redisTemplate;

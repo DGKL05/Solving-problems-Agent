@@ -3,111 +3,88 @@ package com.agentdome.agent;
 import com.agentdome.common.exception.BusinessException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import java.util.Map;
 
 @Service
 public class QwenService {
+
+    private static final Logger log = LoggerFactory.getLogger(QwenService.class);
 
     @Value("${aliyun.dashscope.api-key}")
     private String apiKey;
 
     private final RestTemplate restTemplate = new RestTemplate();
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
-    private static final String DASHSCOPE_URL =
+    private static final String URL =
             "https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation";
 
-    /**
-     * Call Qwen text model to solve a problem.
-     */
     public String solveProblem(String subjectType, String cleanedText) {
         String prompt = buildPrompt(subjectType, cleanedText);
+        log.info("Qwen solving with qwen-max, prompt len={}, apiKey={}",
+                prompt.length(), apiKey != null ? apiKey.substring(0, 5) : "NULL");
 
         try {
-            String body = objectMapper.writeValueAsString(
-                    new QwenRequest("qwen-plus", prompt));
+            ObjectMapper mapper = new ObjectMapper();
+            Map<String, Object> body = Map.of(
+                "model", "qwen-max",
+                "input", Map.of("messages", new Object[]{
+                    Map.of("role", "user", "content", prompt)
+                }),
+                "parameters", Map.of()
+            );
+            String json = mapper.writeValueAsString(body);
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.setBearerAuth(apiKey);
 
-            ResponseEntity<String> response = restTemplate.postForEntity(
-                    DASHSCOPE_URL, new HttpEntity<>(body, headers), String.class);
+            ResponseEntity<String> resp = restTemplate.postForEntity(
+                    URL, new HttpEntity<>(json, headers), String.class);
 
-            if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
-                throw new BusinessException("Qwen API call failed");
+            log.info("Qwen HTTP {}: {}", resp.getStatusCode(),
+                    resp.getBody() != null ? resp.getBody().substring(0, Math.min(200, resp.getBody().length())) : "null");
+
+            JsonNode root = mapper.readTree(resp.getBody());
+            if (root.has("output")) {
+                return root.get("output").get("text").asText();
             }
-
-            JsonNode root = objectMapper.readTree(response.getBody());
-            return root.path("output").path("text").asText("No response from model");
+            throw new BusinessException("Qwen: " + resp.getBody());
 
         } catch (BusinessException e) {
             throw e;
         } catch (Exception e) {
-            throw new BusinessException("Qwen service error: " + e.getMessage());
+            log.error("Qwen error", e);
+            throw new BusinessException("Qwen: " + e.getMessage());
         }
     }
 
     private String buildPrompt(String subjectType, String cleanedText) {
         return switch (subjectType) {
             case "ACM" -> """
-                    你是一位算法竞赛专家。请解答以下题目：
-                    1. 分析问题，识别算法类型
-                    2. 给出解题思路和核心算法描述
-                    3. 输出C++代码（带必要注释）
-                    4. 分析时间复杂度和空间复杂度
+                    You are an expert competitive programmer. Solve:
+                    1. Identify algorithm type
+                    2. Explain approach
+                    3. Provide C++ code
+                    4. Analyze complexity
 
-                    题目：
+                    Problem:
                     """ + cleanedText;
             case "MATH" -> """
-                    你是一位数学教授。请解答以下题目：
-                    1. 明确问题类型和涉及的数学概念
-                    2. 给出详细的分步推导过程
-                    3. 每一步都要解释原理
-                    4. 最终答案用 \\boxed{...} 标注
+                    You are a math professor. Solve:
+                    1. Identify concepts
+                    2. Step-by-step derivation
+                    3. Explain reasoning
+                    4. Box answer with \\boxed{}
 
-                    题目：
+                    Problem:
                     """ + cleanedText;
-            case "CS408" -> """
-                    你是一位考研408辅导专家。请解答以下题目：
-                    1. 明确考点（数据结构/计组/操作系统/计网）
-                    2. 给出解题步骤和推理过程
-                    3. 对于计算题，写出公式和计算过程
-                    4. 对于选择题，逐选项分析正误原因
-
-                    题目：
-                    """ + cleanedText;
-            default -> "请解答以下题目：\n" + cleanedText;
+            default -> "Please solve:\n" + cleanedText;
         };
-    }
-
-    static class QwenRequest {
-        public String model;
-        public Input input;
-        public Parameters parameters;
-
-        QwenRequest(String model, String prompt) {
-            this.model = model;
-            this.input = new Input(prompt);
-            this.parameters = new Parameters();
-        }
-
-        static class Input {
-            public Message[] messages;
-            Input(String prompt) {
-                this.messages = new Message[]{new Message(prompt)};
-            }
-        }
-
-        static class Message {
-            public String role = "user";
-            public String content;
-            Message(String content) { this.content = content; }
-        }
-
-        static class Parameters {}
     }
 }

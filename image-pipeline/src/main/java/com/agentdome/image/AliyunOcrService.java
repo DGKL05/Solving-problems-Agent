@@ -70,7 +70,7 @@ public class AliyunOcrService {
             this.messages = new Message[]{
                     new Message(new Content[]{
                             new ImageContent("data:image/png;base64," + base64Image),
-                            new TextContent("请提取图片中的所有文字内容")
+                            new TextContent("Extract all text content from this image")
                     })
             };
         }
