@@ -62,6 +62,7 @@ public class AuthController {
         }
 
         User user = new User();
+        user.setOpenid("web_" + UUID.randomUUID().toString().substring(0, 12));
         user.setUsername(username);
         user.setPassword(passwordEncoder.encode(password));
         user.setNickname(nickname);
