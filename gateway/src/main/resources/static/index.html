@@ -3,516 +3,389 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>AgentDome · AI 解题</title>
+<title>AgentDome · 课堂演示</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;1,8..60,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;1,8..60,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/github-dark.min.css">
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/highlight.min.js"></script>
 <script>
-MathJax = {
-  tex: {
-    inlineMath: [['$','$'],['\\(','\\)']],
-    displayMath: [['$$','$$'],['\\[','\\]']],
-    processEscapes: true
-  }
-};
+MathJax = { tex:{ inlineMath:[['$','$'],['\\(','\\)']], displayMath:[['$$','$$'],['\\[','\\]']], processEscapes:true } };
 </script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 <style>
 :root {
-  --bg:#1a1a17; --surface:#242420; --surface2:#2d2d28; --border:#383830;
-  --gold:#c9a84c; --gold-dim:#8a7234; --gold-bright:#e8c97a;
-  --text:#e6e2d8; --text-dim:#8a877e; --text-faint:#5c5952;
-  --sage:#7a9d7e; --red:#b85450;
+  --bg:#0d1117; --surface:#161b22; --surface2:#21262d; --border:#30363d;
+  --gold:#d2991d; --gold-dim:#9e6a03; --gold-bright:#e3b341;
+  --text:#e6edf3; --text-dim:#8b949e; --text-faint:#484f58;
+  --blue:#58a6ff; --green:#3fb950; --red:#f85149;
 }
 
 *{margin:0;padding:0;box-sizing:border-box}
-html{font-size:17px}
+html{font-size:18px}
 body{
   font-family:'Source Serif 4',Georgia,serif;
   background:var(--bg); color:var(--text);
-  min-height:100vh; line-height:1.65;
-  position:relative; overflow-x:hidden;
-}
-
-body::before{
-  content:''; position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.025;
-  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  min-height:100vh; line-height:1.7;
 }
 
 input[type=file]{display:none}
 .hidden{display:none!important}
 
-/* ═══════════════ LOGIN SCREEN ═══════════════ */
+/* ═══════ LOGIN ═══════ */
 .login-screen{
   position:fixed;inset:0;z-index:10;background:var(--bg);
-  display:flex;align-items:center;justify-content:center;
+  display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2rem;
 }
 .login-card{
-  width:380px;max-width:90vw;padding:3rem 2rem;text-align:center;
-  background:var(--surface);border:1px solid var(--border);
-  position:relative;
-}
-.login-card::after{
-  content:'';position:absolute;bottom:-8px;left:12px;right:12px;height:8px;
-  background:var(--surface2);border:1px solid var(--border);z-index:-1;
-}
-.login-mark{
-  font-family:'JetBrains Mono',monospace;
-  font-size:.7rem;color:var(--gold);letter-spacing:.15em;
-  border:1px solid var(--gold-dim);display:inline-block;
-  padding:.2rem .6rem;margin-bottom:1.5rem;
+  width:420px;max-width:90vw;padding:3rem 2.5rem;text-align:center;
+  background:var(--surface);border:1px solid var(--border);border-radius:12px;
 }
 .login-title{
   font-family:'Playfair Display',Georgia,serif;
-  font-size:2rem;font-weight:700;letter-spacing:-.02em;
-  margin-bottom:.5rem;
+  font-size:2.4rem;font-weight:700;color:var(--text);margin-bottom:.25rem;
 }
-.login-sub{color:var(--text-dim);font-size:.85rem;margin-bottom:2rem}
-.login-avatar{
-  width:56px;height:56px;border-radius:2px;margin:0 auto 1.2rem;
-  background:var(--surface2);border:1px solid var(--border);
-  display:flex;align-items:center;justify-content:center;
-  font-size:1.4rem;color:var(--text-faint);
-}
+.login-sub{color:var(--text-dim);font-size:.95rem;margin-bottom:1.8rem}
+#loginError{color:var(--red);font-size:.85rem;margin-top:.8rem}
 .login-input{
-  width:100%;padding:.8rem 1rem;font-size:.9rem;
+  width:100%;padding:.9rem 1rem;margin-bottom:.7rem;font-size:.95rem;
   font-family:'Source Serif 4',Georgia,serif;
   background:var(--bg);border:1px solid var(--border);color:var(--text);
-  outline:none;margin-bottom:.75rem;transition:.2s;
+  border-radius:8px;outline:none;transition:.2s;
 }
-.login-input:focus{border-color:var(--gold-dim)}
+.login-input:focus{border-color:var(--gold-dim);box-shadow:0 0 0 3px rgba(210,153,29,.15)}
 .login-input::placeholder{color:var(--text-faint)}
-.login-btn{
-  width:100%;padding:.85rem;font-size:.9rem;cursor:pointer;border:none;
-  font-family:'Source Serif 4',Georgia,serif;
-  color:var(--text);letter-spacing:.05em;
-  transition:all .25s;margin-bottom:.6rem;
-  background:var(--gold-dim);
+.btn{
+  display:block;width:100%;padding:.85rem 1.5rem;font-size:.95rem;
+  font-family:'Source Serif 4',Georgia,serif;cursor:pointer;border:none;
+  border-radius:8px;letter-spacing:.03em;transition:all .2s;font-weight:500;
 }
-.login-btn:hover{background:var(--gold)}
-.login-btn.ghost{background:transparent;border:1px solid var(--border);color:var(--text-dim)}
-.login-btn.ghost:hover{border-color:var(--gold-dim);color:var(--text)}
+.btn-primary{background:var(--gold-dim);color:#fff}
+.btn-primary:hover{background:var(--gold)}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text-dim)}
+.btn-ghost:hover{border-color:var(--gold-dim);color:var(--text)}
 .login-divider{
-  display:flex;align-items:center;gap:.75rem;margin:1rem 0;
-  color:var(--text-faint);font-size:.75rem;
+  display:flex;align-items:center;gap:.75rem;margin:1.2rem 0;
+  color:var(--text-faint);font-size:.8rem;
 }
 .login-divider::before,.login-divider::after{content:'';flex:1;height:1px;background:var(--border)}
-.login-error{color:var(--red);font-size:.8rem;margin-top:.5rem}
 
-/* ═══════════════ MAIN APP ═══════════════ */
-.app{position:relative;z-index:1;max-width:960px;margin:0 auto;padding:2rem 1.5rem}
-.header{
+/* ═══════ MAIN ═══════ */
+.app{max-width:900px;margin:0 auto;padding:1.5rem 2rem 3rem}
+
+/* Top bar */
+.topbar{
   display:flex;align-items:center;justify-content:space-between;
-  padding:1.5rem 0 2rem;border-bottom:1px solid var(--border);
-  margin-bottom:2rem;flex-wrap:wrap;gap:1rem;
+  padding:.8rem 0 1.2rem;border-bottom:1px solid var(--border);margin-bottom:2rem;
 }
-.logo-group{display:flex;align-items:baseline;gap:.75rem}
-.logo-mark{
-  font-family:'JetBrains Mono',monospace;font-size:.7rem;
-  color:var(--gold);border:1px solid var(--gold-dim);
-  padding:.15rem .5rem;letter-spacing:.1em;
-}
-.logo-text{
-  font-family:'Playfair Display',Georgia,serif;
-  font-size:1.6rem;font-weight:700;letter-spacing:-.02em;
-  color:var(--text);
-}
-.user-area{display:flex;align-items:center;gap:.6rem}
-.user-avatar{
-  width:28px;height:28px;border-radius:2px;
-  background:var(--gold-dim);color:var(--bg);
+.brand{display:flex;align-items:center;gap:.6rem}
+.brand-icon{
+  width:36px;height:36px;border-radius:8px;
+  background:linear-gradient(135deg,var(--gold-dim),var(--gold));
   display:flex;align-items:center;justify-content:center;
-  font-size:.65rem;font-family:'JetBrains Mono',monospace;
+  font-size:.85rem;font-family:'JetBrains Mono',monospace;color:#fff;font-weight:600;
 }
-.user-name{font-size:.8rem;color:var(--text-dim)}
-.status-line{display:flex;align-items:center;gap:.4rem;font-size:.7rem;color:var(--text-faint)}
-.status-dot{width:6px;height:6px;border-radius:50%;background:var(--text-faint);transition:.3s}
-.status-dot.on{background:var(--sage);box-shadow:0 0 6px rgba(122,157,126,.5)}
+.brand-text{font-family:'Playfair Display',Georgia,serif;font-size:1.3rem;font-weight:700}
+.user-tag{display:flex;align-items:center;gap:.3rem;font-size:.75rem;color:var(--text-dim)}
+.user-tag .dot{width:7px;height:7px;border-radius:50%;background:var(--green)}
+.user-tag .dot.off{background:var(--text-faint)}
 
-/* ═══════════════ LAYOUT ═══════════════ */
-.main-grid{display:grid;grid-template-columns:340px 1fr;gap:2rem;align-items:start}
-@media(max-width:768px){.main-grid{grid-template-columns:1fr}}
-.sidebar{position:sticky;top:2rem}
-
+/* Upload card */
 .upload-card{
-  background:var(--surface);border:1px solid var(--border);
-  padding:1.75rem;margin-bottom:1.25rem;position:relative;
+  background:var(--surface);border:1px solid var(--border);border-radius:12px;
+  padding:2rem;margin-bottom:2rem;
 }
-.upload-card::before{
-  content:'';position:absolute;top:-1px;left:1.5rem;right:1.5rem;height:1px;
-  background:linear-gradient(90deg,transparent,var(--gold-dim),transparent);
-}
-.card-label{
-  font-family:'JetBrains Mono',monospace;font-size:.65rem;
-  text-transform:uppercase;letter-spacing:.15em;
-  color:var(--text-faint);margin-bottom:1rem;
+.upload-card h2{
+  font-family:'Playfair Display',Georgia,serif;font-size:1.15rem;
+  font-weight:700;color:var(--text);margin-bottom:1rem;
 }
 .upload-zone{
-  border:1px dashed var(--border);padding:2rem 1.5rem;text-align:center;
-  cursor:pointer;transition:all .25s;position:relative;
+  border:2px dashed var(--border);border-radius:10px;
+  padding:2.5rem 2rem;text-align:center;cursor:pointer;transition:all .25s;
+  margin-bottom:1.2rem;
 }
-.upload-zone:hover,.upload-zone.drag-over{border-color:var(--gold-dim);background:rgba(201,168,76,.04)}
-.upload-zone-icon{font-size:2rem;margin-bottom:.5rem;opacity:.6}
-.upload-zone-text{font-size:.85rem;color:var(--text-dim)}
-.upload-zone-hint{font-size:.7rem;color:var(--text-faint);margin-top:.35rem}
-.upload-preview{max-width:100%;max-height:160px;margin-top:.75rem;display:none}
-.upload-preview.show{display:block}
+.upload-zone:hover,.upload-zone.drag-over{
+  border-color:var(--gold-dim);background:rgba(210,153,29,.04);
+}
+.upload-zone .icon{font-size:2.5rem;margin-bottom:.4rem}
+.upload-zone .text{font-size:.95rem;color:var(--text-dim)}
+.upload-zone .hint{font-size:.75rem;color:var(--text-faint);margin-top:.3rem}
+.upload-zone .preview{max-width:100%;max-height:200px;margin-top:.8rem;display:none;border-radius:8px}
+.upload-zone .preview.show{display:block}
 
-.subject-chips{display:flex;gap:.5rem;margin-top:1rem;flex-wrap:wrap}
+.chips{display:flex;gap:.5rem;flex-wrap:wrap}
 .chip{
-  padding:.5rem .9rem;font-size:.78rem;font-family:'JetBrains Mono',monospace;
-  background:var(--surface2);border:1px solid var(--border);
-  color:var(--text-dim);cursor:pointer;transition:all .2s;letter-spacing:.03em;
+  padding:.55rem 1rem;font-size:.82rem;font-family:'JetBrains Mono',monospace;
+  background:var(--surface2);border:1px solid var(--border);border-radius:8px;
+  color:var(--text-dim);cursor:pointer;transition:all .2s;
 }
-.chip:hover{border-color:var(--gold-dim);color:var(--gold)}
-.chip.active{background:rgba(201,168,76,.12);border-color:var(--gold);color:var(--gold-bright)}
-.chip .emoji{font-size:.9rem;margin-right:.25rem}
-.ornament{text-align:center;color:var(--text-faint);font-size:.65rem;margin-top:1rem;letter-spacing:.25em}
+.chip:hover{border-color:var(--gold-dim);color:var(--gold-bright)}
+.chip.active{background:rgba(210,153,29,.15);border-color:var(--gold);color:var(--gold-bright)}
 
-/* ═══════════════ CHAT ═══════════════ */
-.chat-container{min-height:60vh}
+/* Messages */
 .chat-list{display:flex;flex-direction:column;gap:1.5rem}
 .empty-state{text-align:center;padding:4rem 2rem}
-.empty-icon{font-size:3rem;margin-bottom:1rem;opacity:.4}
-.empty-title{font-family:'Playfair Display',Georgia,serif;font-size:1.4rem;color:var(--text-dim);margin-bottom:.5rem}
-.empty-sub{font-size:.85rem;color:var(--text-faint);line-height:1.7}
+.empty-icon{font-size:3.5rem;margin-bottom:1rem;opacity:.3}
+.empty-title{font-family:'Playfair Display',Georgia,serif;font-size:1.5rem;color:var(--text-dim)}
+.empty-sub{font-size:.9rem;color:var(--text-faint);margin-top:.5rem;line-height:1.7}
 
-.msg{display:flex;gap:.75rem;animation:msgIn .35s ease-out}
+.msg{animation:msgIn .35s ease-out}
 @keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-.msg.user{flex-direction:row-reverse}
-.msg-avatar{
-  width:2rem;height:2rem;border-radius:2px;flex-shrink:0;
+.msg-header{display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem}
+.msg-header .role-avatar{
+  width:28px;height:28px;border-radius:6px;font-size:.65rem;
+  font-family:'JetBrains Mono',monospace;
   display:flex;align-items:center;justify-content:center;
-  font-size:.7rem;font-family:'JetBrains Mono',monospace;
 }
-.msg.user .msg-avatar{background:var(--gold-dim);color:var(--bg)}
-.msg.assistant .msg-avatar{background:var(--surface2);color:var(--text-dim);border:1px solid var(--border)}
-.msg-body{max-width:85%}
+.msg.user .role-avatar{background:var(--gold-dim);color:#fff}
+.msg.assistant .role-avatar{background:var(--surface2);color:var(--blue);border:1px solid var(--border)}
+.msg-header .role-name{font-size:.78rem;font-weight:600}
+.msg.user .role-name{color:var(--gold-bright)}
+.msg.assistant .role-name{color:var(--blue)}
+.msg-header .role-time{font-size:.65rem;color:var(--text-faint);font-family:'JetBrains Mono',monospace}
+.msg.user .msg-header{flex-direction:row-reverse}
+
+.msg-body{padding:.6rem 0}
+.msg.user .msg-body{text-align:right}
 .msg-bubble{
-  padding:.9rem 1.1rem;font-size:.88rem;line-height:1.7;
+  display:inline-block;max-width:100%;text-align:left;
+  background:var(--surface);border:1px solid var(--border);border-radius:10px;
+  padding:1.2rem 1.5rem;font-size:.95rem;line-height:1.85;
   white-space:pre-wrap;word-break:break-word;
 }
-.msg.user .msg-bubble{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
-.msg.assistant .msg-bubble{background:transparent;color:var(--text);border-left:2px solid var(--gold-dim);padding-left:1rem}
-.msg.assistant .msg-bubble.streaming{border-left-color:var(--gold)}
-.stream-cursor{display:inline-block;width:2px;height:1em;background:var(--gold);vertical-align:text-bottom;animation:cursorBlink .7s infinite;margin-left:1px}
-@keyframes cursorBlink{0%,100%{opacity:1}50%{opacity:0}}
-.msg-time{font-size:.6rem;color:var(--text-faint);margin-top:.3rem;font-family:'JetBrains Mono',monospace}
-.msg.user .msg-time{text-align:right}
-.msg-bubble code,.msg-bubble pre{font-family:'JetBrains Mono',monospace;font-size:.78rem;background:rgba(0,0,0,.3);padding:.15rem .35rem}
-
-/* ── Markdown Rendering ── */
-.markdown-body { line-height:1.75 }
-.markdown-body h1,.markdown-body h2,.markdown-body h3,.markdown-body h4 {
-  font-family:'Playfair Display',Georgia,serif;font-weight:700;
-  margin:1.2em 0 .5em;color:var(--gold-bright);
+.msg.assistant .msg-bubble{
+  background:transparent;border:none;border-left:3px solid var(--border);
+  border-radius:0;padding:.1rem 0 .1rem 1.2rem;max-width:100%;
 }
-.markdown-body h1{font-size:1.3rem}.markdown-body h2{font-size:1.15rem}.markdown-body h3{font-size:1.05rem}
+.msg.assistant .msg-bubble.streaming{border-left-color:var(--gold)}
+.stream-cursor{
+  display:inline-block;width:2px;height:1.1em;background:var(--gold);
+  vertical-align:text-bottom;animation:cBlink .7s infinite;margin-left:1px;
+}
+@keyframes cBlink{0%,100%{opacity:1}50%{opacity:0}}
+
+/* ── Markdown in messages ── */
+.markdown-body{line-height:1.9}
+.markdown-body h1,.markdown-body h2,.markdown-body h3,.markdown-body h4{
+  font-family:'Playfair Display',Georgia,serif;font-weight:700;
+  margin:1.2em 0 .4em;color:var(--gold-bright);
+}
+.markdown-body h1{font-size:1.4rem}.markdown-body h2{font-size:1.2rem}.markdown-body h3{font-size:1.05rem}
 .markdown-body h4{font-size:.95rem}
-.markdown-body p{margin:.5em 0}
+.markdown-body p{margin:.4em 0}
 .markdown-body strong{color:var(--gold-bright);font-weight:600}
-.markdown-body ul,.markdown-body ol{padding-left:1.5em;margin:.5em 0}
+.markdown-body em{color:var(--text-dim)}
+.markdown-body ul,.markdown-body ol{padding-left:1.5em;margin:.4em 0}
 .markdown-body li{margin:.2em 0}
-.markdown-body table{border-collapse:collapse;margin:.8em 0;width:100%}
-.markdown-body td,.markdown-body th{border:1px solid var(--border);padding:.4em .7em;text-align:left;font-size:.82rem}
+.markdown-body code{
+  font-family:'JetBrains Mono',monospace;font-size:.85rem;
+  background:rgba(210,153,29,.1);color:var(--gold-bright);
+  padding:.1em .35em;border-radius:3px;
+}
+.markdown-body pre{
+  background:var(--bg);border:1px solid var(--border);border-radius:8px;
+  padding:.9em 1.2em;overflow-x:auto;margin:.6em 0;font-size:.85rem;line-height:1.55;
+}
+.markdown-body pre code{background:transparent;padding:0;color:var(--text);font-size:inherit}
+.markdown-body table{border-collapse:collapse;margin:.6em 0;width:100%}
+.markdown-body td,.markdown-body th{
+  border:1px solid var(--border);padding:.45em .8em;text-align:left;font-size:.85rem;
+}
 .markdown-body th{background:var(--surface2);color:var(--gold-dim);font-weight:600}
 .markdown-body blockquote{
-  border-left:3px solid var(--gold-dim);padding:.3em 1em;
-  margin:.6em 0;color:var(--text-dim);font-style:italic;
+  border-left:3px solid var(--gold-dim);padding:.2em 1em;
+  margin:.5em 0;color:var(--text-dim);font-style:italic;
 }
-.markdown-body a{color:var(--gold);text-decoration:underline}
-.markdown-body hr{border:none;border-top:1px solid var(--border);margin:1em 0}
-.markdown-body pre{
-  background:var(--bg);border:1px solid var(--border);
-  padding:.8em 1em;overflow-x:auto;margin:.6em 0;font-size:.8rem;line-height:1.5;
+.markdown-body a{color:var(--blue)}
+.markdown-body img{max-width:100%;margin:.4em 0}
+.markdown-body hr{border:none;border-top:1px solid var(--border);margin:.8em 0}
+
+/* MathJax */
+mjx-container{font-size:1em!important;color:var(--text)!important}
+mjx-container[jax=CHTML][display=true]{margin:.7em 0;overflow-x:auto}
+
+@media(max-width:640px){
+  html{font-size:16px}
+  .app{padding:1rem}
+  .upload-card{padding:1.2rem}
+  .msg-bubble{font-size:.9rem}
 }
-.markdown-body pre code{background:transparent;padding:0;font-size:inherit}
-.markdown-body code{
-  font-family:'JetBrains Mono',monospace;font-size:.82rem;
-  background:rgba(201,168,76,.1);color:var(--gold-bright);
-  padding:.1em .35em;border-radius:2px;
-}
-.markdown-body img{max-width:100%;margin:.5em 0}
-.markdown-body mjx-container{font-size:1em!important;color:var(--text)!important}
-.markdown-body mjx-container[jax=CHTML][display=true]{margin:.8em 0;overflow-x:auto}
-.markdown-body .MathJax{color:var(--text)}
 </style>
 </head>
 <body>
 
-<!-- ══════════ LOGIN SCREEN ══════════ -->
+<!-- LOGIN -->
 <div class="login-screen" id="loginScreen">
 <div class="login-card">
-  <div class="login-mark">AGENT</div>
-  <h1 class="login-title">AgentDome</h1>
-  <p class="login-sub">AI 智能解题助手</p>
-
-  <!-- Guest login -->
-  <button class="login-btn" id="btnGuest" onclick="doGuestLogin()">
-    游客登录
-  </button>
-
-  <div class="login-divider">或输入昵称</div>
-
-  <!-- Named login -->
-  <input class="login-input" id="nickInput" type="text" placeholder="你的昵称" maxlength="20">
-  <button class="login-btn" id="btnNamed" onclick="doNamedLogin()">
-    进入
-  </button>
-  <div class="login-error hidden" id="loginError"></div>
+  <div class="login-title">AgentDome</div>
+  <div class="login-sub">AI 智能解题助手 · 课堂演示</div>
+  <button class="btn btn-primary" id="btnGuest" onclick="doGuestLogin()">游客登录</button>
+  <div class="login-divider">或输入你的名字</div>
+  <input class="login-input" id="nickInput" placeholder="输入昵称" maxlength="20">
+  <button class="btn btn-primary" id="btnNamed" onclick="doNamedLogin()">进入演示</button>
+  <div class="hidden" id="loginError"></div>
 </div>
 </div>
 
-<!-- ══════════ MAIN APP (hidden initially) ══════════ -->
+<!-- MAIN APP -->
 <div class="app hidden" id="mainApp">
-<header class="header">
-  <div class="logo-group">
-    <span class="logo-mark">AGENT</span>
-    <h1 class="logo-text">AgentDome</h1>
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-icon">AD</div>
+    <span class="brand-text">AgentDome</span>
   </div>
-  <div class="user-area">
-    <span class="status-dot" id="statusDot"></span>
-    <span class="status-line" id="statusText">连接中…</span>
-    <div class="user-avatar" id="userAvatar">?</div>
-    <span class="user-name" id="userName">--</span>
+  <div class="user-tag">
+    <span class="dot" id="statusDot"></span>
+    <span id="statusText">连接中…</span>
+    <span style="margin-left:.5rem" id="userName">--</span>
   </div>
-</header>
+</div>
 
-<div class="main-grid">
-<aside class="sidebar">
-  <div class="upload-card">
-    <div class="card-label">· 上传题目 ·</div>
-    <div class="upload-zone" id="uploadZone">
-      <div class="upload-zone-icon" id="uploadIcon">⊞</div>
-      <div class="upload-zone-text" id="uploadText">拖拽或点击上传</div>
-      <div class="upload-zone-hint">PNG · JPG · 最大 20MB</div>
-      <img class="upload-preview" id="preview">
-    </div>
-    <input type="file" id="fileInput" accept="image/*">
-    <div class="subject-chips">
-      <div class="chip active" data-subject="ACM"><span class="emoji">⊿</span>ACM</div>
-      <div class="chip" data-subject="MATH"><span class="emoji">∫</span>数学</div>
-      <div class="chip" data-subject="CS408"><span class="emoji">⊕</span>408</div>
-    </div>
+<div class="upload-card">
+  <h2>📸 上传题目</h2>
+  <div class="upload-zone" id="uploadZone">
+    <div class="icon" id="uploadIcon">⊞</div>
+    <div class="text" id="uploadText">拖拽图片到此处 或 点击选择文件</div>
+    <div class="hint">支持 PNG / JPG，建议截图清晰</div>
+    <img class="preview" id="previewImg">
   </div>
-  <div class="ornament">━ ◈ ━</div>
-</aside>
+  <input type="file" id="fileInput" accept="image/*">
+  <div class="chips">
+    <div class="chip active" data-subject="ACM">⊿ 算法竞赛</div>
+    <div class="chip" data-subject="MATH">∫ 高等数学</div>
+    <div class="chip" data-subject="CS408">⊕ 考研 408</div>
+  </div>
+</div>
 
-<main class="chat-container">
-  <div class="chat-list" id="chatList">
-    <div class="empty-state" id="emptyState">
-      <div class="empty-icon">◈</div>
-      <div class="empty-title">上传一道题目</div>
-      <div class="empty-sub">支持算法竞赛、高等数学、考研 408<br>AI 将实时流式输出解答过程</div>
-    </div>
+<div class="chat-list" id="chatList">
+  <div class="empty-state" id="emptyState">
+    <div class="empty-icon">◈</div>
+    <div class="empty-title">准备开始演示</div>
+    <div class="empty-sub">上传一道题目图片<br>AI 将实时流式输出完整解答过程</div>
   </div>
-</main>
 </div>
 </div>
 
 <script>
-// ── Marked Config ──
-if(typeof marked !== 'undefined'){
-  marked.setOptions({
-    highlight: function(code, lang){
-      if(lang && hljs.getLanguage(lang)){
-        return hljs.highlight(code, { language: lang }).value;
-      }
-      return hljs.highlightAuto(code).value;
-    },
-    breaks: true,
-    gfm: true
-  });
-}
-
-var S = {token:null,userId:null,nick:'',sessionId:null,ws:null,subject:'ACM',file:null};
+var S={token:null,userId:null,nick:'',sessionId:null,ws:null,subject:'ACM',file:null};
 var $=function(s){return document.querySelector(s);};
 var $$=function(s){return document.querySelectorAll(s);};
+var _streamText='';
 
-/* ═══════════════ LOGIN ═══════════════ */
+// ── Marked + MathJax ──
+if(typeof marked!=='undefined'){
+  marked.setOptions({highlight:function(c,l){if(l&&hljs.getLanguage(l))return hljs.highlight(c,{language:l}).value;return hljs.highlightAuto(c).value;},breaks:true,gfm:true});
+}
+function md(s){try{return marked.parse(s)}catch(e){return esc(s)}}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function typeset(el){if(window.MathJax)MathJax.typesetPromise([el]).catch(function(){})}
+function now(){return new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'})}
+
+// ── Login ──
 async function doGuestLogin(){
-  var btn = $('#btnGuest');
-  btn.textContent = '登录中…'; btn.disabled = true;
+  var b=$('#btnGuest');b.textContent='登录中…';b.disabled=true;
   try{
-    var r = await fetch('/api/auth/guest',{method:'POST',headers:{'Content-Type':'application/json'}});
-    var d = await r.json();
-    if(d.token) enterApp(d.token, d.userId, d.nickname||'游客');
-  }catch(e){ showError('连接失败，请确认后端已启动'); btn.textContent='游客登录'; btn.disabled=false; }
+    var r=await fetch('/api/auth/guest',{method:'POST',headers:{'Content-Type':'application/json'}});
+    var d=await r.json();
+    if(d.token)enterApp(d.token,d.userId,d.nickname||'观众');
+  }catch(e){showError('连接失败，确认后端已启动');b.textContent='游客登录';b.disabled=false;}
 }
-
 async function doNamedLogin(){
-  var nick = $('#nickInput').value.trim();
-  if(!nick){ showError('请输入昵称'); return; }
-  var btn = $('#btnNamed');
-  btn.textContent = '登录中…'; btn.disabled = true;
+  var n=$('#nickInput').value.trim();if(!n){showError('请输入昵称');return;}
+  var b=$('#btnNamed');b.textContent='登录中…';b.disabled=true;
   try{
-    var r = await fetch('/api/auth/guest',{method:'POST',headers:{'Content-Type':'application/json'}});
-    var d = await r.json();
-    if(d.token) enterApp(d.token, d.userId, nick);
-  }catch(e){ showError('连接失败'); btn.textContent='进入'; btn.disabled=false; }
+    var r=await fetch('/api/auth/guest',{method:'POST',headers:{'Content-Type':'application/json'}});
+    var d=await r.json();
+    if(d.token)enterApp(d.token,d.userId,n);
+  }catch(e){showError('连接失败');b.textContent='进入演示';b.disabled=false;}
+}
+function showError(m){var e=$('#loginError');e.textContent=m;e.classList.remove('hidden');setTimeout(function(){e.classList.add('hidden')},3000)}
+$('#nickInput').onkeydown=function(e){if(e.key==='Enter')doNamedLogin()}
+function enterApp(t,u,n){
+  S.token=t;S.userId=u;S.nick=n;
+  $('#loginScreen').classList.add('hidden');$('#mainApp').classList.remove('hidden');
+  $('#userName').textContent=n;connectWS();
 }
 
-function showError(msg){
-  var el = $('#loginError');
-  el.textContent = msg; el.classList.remove('hidden');
-  setTimeout(function(){ el.classList.add('hidden'); },3000);
-}
-
-// Keyboard submit
-$('#nickInput').onkeydown = function(e){ if(e.key==='Enter') doNamedLogin(); };
-
-function enterApp(token, userId, nick){
-  S.token = token; S.userId = userId; S.nick = nick;
-  $('#loginScreen').classList.add('hidden');
-  $('#mainApp').classList.remove('hidden');
-  $('#userAvatar').textContent = nick.charAt(0);
-  $('#userName').textContent = nick;
-  connectWS();
-}
-
-/* ═══════════════ WEBSOCKET ═══════════════ */
+// ── WebSocket ──
 function connectWS(){
-  var proto = location.protocol==='https:'?'wss':'ws';
-  S.ws = new WebSocket(proto+'://'+location.host+'/ws/chat?token='+S.token);
-  S.ws.onopen = function(){ setStatus(true,'已连接'); };
-  S.ws.onmessage = function(e){
-    var m = JSON.parse(e.data);
-    if(m.type==='connected'){ S.sessionId = m.sessionId; }
-    else if(m.type==='solve-start'){ addBubble('assistant','',true); }
-    else if(m.type==='solve-chunk'){ appendLast(m.chunk); }
-    else if(m.type==='solve-done'){ finishLast(); }
-    else if(m.type==='solve-error'){ appendLast('\n\n[错误: '+m.message+']'); finishLast(); }
-    else if(m.type==='message'){ addBubble('assistant',m.content); }
+  var p=location.protocol==='https:'?'wss':'ws';
+  S.ws=new WebSocket(p+'://'+location.host+'/ws/chat?token='+S.token);
+  S.ws.onopen=function(){setStatus(true,'在线')};
+  S.ws.onmessage=function(e){
+    var m=JSON.parse(e.data);
+    if(m.type==='connected'){S.sessionId=m.sessionId}
+    else if(m.type==='solve-start'){addMsg('assistant','',true)}
+    else if(m.type==='solve-chunk'){appendStream(m.chunk)}
+    else if(m.type==='solve-done'){finishStream()}
+    else if(m.type==='solve-error'){appendStream('\n\n[错误: '+m.message+']');finishStream()}
+    else if(m.type==='message'){addMsg('assistant',m.content)}
   };
-  S.ws.onclose = function(){ setStatus(false,'断开,重连中…'); setTimeout(connectWS,3000); };
-  S.ws.onerror = function(){ setStatus(false,'连接错误'); };
+  S.ws.onclose=function(){setStatus(false,'断开');setTimeout(connectWS,3000)};
+  S.ws.onerror=function(){setStatus(false,'错误')};
 }
+function setStatus(on,m){$('#statusDot').className='dot'+(on?'':' off');$('#statusText').textContent=m}
 
-function setStatus(on,msg){
-  $('#statusDot').className = 'status-dot'+(on?' on':'');
-  $('#statusText').textContent = msg;
-}
-
-/* ═══════════════ CHAT ═══════════════ */
-function hideEmpty(){ var el=$('#emptyState'); if(el) el.style.display='none'; }
-
-function addBubble(role,text,streaming,isMd){
+// ── Messages ──
+function hideEmpty(){var e=$('#emptyState');if(e)e.style.display='none'}
+function addMsg(role,text,streaming){
   hideEmpty();
-  var div = document.createElement('div'); div.className='msg '+role;
-  var av = role==='assistant'?'AI':(S.nick.charAt(0)||'?');
-  var cls = streaming?' streaming':'';
-  var content = isMd ? md(text) : esc(text);
-  if(streaming){ _streamText = text; }
-  div.innerHTML='<div class="msg-avatar">'+av+'</div><div class="msg-body">'+
-    '<div class="msg-bubble'+cls+(isMd?' markdown-body':'')+'">'+content+(streaming?'<span class="stream-cursor"></span>':'')+'</div>'+
-    '<div class="msg-time">'+now()+'</div></div>';
-  $('#chatList').appendChild(div);
-  if(isMd && !streaming){ typesetMath(div); }
-  div.scrollIntoView({behavior:'smooth',block:'end'});
+  var d=document.createElement('div');d.className='msg '+role;
+  var av=role==='assistant'?'AI':(S.nick.charAt(0)||'?');
+  var rn=role==='assistant'?'AI 助手':S.nick;
+  var cls=streaming?' streaming':'',isMd=role==='assistant'&&text;
+  if(streaming){_streamText=''}
+  var ct=isMd?md(text):esc(text);
+  d.innerHTML='<div class="msg-header"><div class="role-avatar">'+av+'</div><span class="role-name">'+rn+'</span><span class="role-time">'+now()+'</span></div>'+
+    '<div class="msg-body"><div class="msg-bubble'+cls+(isMd?' markdown-body':'')+'">'+ct+(streaming?'<span class="stream-cursor"></span>':'')+'</div></div>';
+  $('#chatList').appendChild(d);
+  if(isMd&&!streaming)typeset(d);
+  d.scrollIntoView({behavior:'smooth',block:'end'});
+}
+function appendStream(text){
+  _streamText+=text;
+  var ms=$$('#chatList .msg.assistant');var l=ms[ms.length-1];if(!l)return;
+  l.querySelector('.msg-bubble').innerHTML=esc(_streamText)+'<span class="stream-cursor"></span>';
+  l.scrollIntoView({behavior:'smooth',block:'end'});
+}
+function finishStream(){
+  var ms=$$('#chatList .msg.assistant');var l=ms[ms.length-1];if(!l)return;
+  var b=l.querySelector('.msg-bubble');b.classList.remove('streaming');b.classList.add('markdown-body');
+  b.innerHTML=md(_streamText);typeset(b);_streamText='';
 }
 
-function appendLast(text){
-  var msgs = $$('#chatList .msg.assistant');
-  var last = msgs[msgs.length-1]; if(!last) return;
-  _streamText += text;
-  var b = last.querySelector('.msg-bubble');
-  // Markdown stream: show raw escaped during stream for fast update
-  // Then final render on done
-  b.innerHTML = esc(_streamText) + '<span class="stream-cursor"></span>';
-  last.scrollIntoView({behavior:'smooth',block:'end'});
-}
+// ── Subject chips ──
+$$('.chip').forEach(function(c){c.onclick=function(){$$('.chip').forEach(function(x){x.classList.remove('active')});c.classList.add('active');S.subject=c.dataset.subject}});
 
-function finishLast(){
-  var msgs = $$('#chatList .msg.assistant');
-  var last = msgs[msgs.length-1]; if(!last) return;
-  var b = last.querySelector('.msg-bubble');
-  b.classList.remove('streaming');
-  b.classList.add('markdown-body');
-  b.innerHTML = md(_streamText);
-  typesetMath(b);
-  _streamText = '';
-}
+// ── Upload ──
+var zone=$('#uploadZone'),input=$('#fileInput');
+zone.onclick=function(){input.click()};
+zone.ondragover=function(e){e.preventDefault();zone.classList.add('drag-over')};
+zone.ondragleave=function(){zone.classList.remove('drag-over')};
+zone.ondrop=function(e){e.preventDefault();zone.classList.remove('drag-over');if(e.dataTransfer.files[0]){input.files=e.dataTransfer.files;proc(e.dataTransfer.files[0])}};
+input.onchange=function(){if(input.files[0])proc(input.files[0])};
 
-function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-function md(s){
-  try{ return marked.parse(s); }
-  catch(e){ return esc(s); }
-}
-function typesetMath(el){
-  if(window.MathJax){
-    MathJax.typesetPromise([el]).catch(function(){});
-  }
-}
-function now(){ return new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'}); }
-
-var _streamText = ''; // accumulated raw text for streaming
-
-/* ═══════════════ SUBJECT ═══════════════ */
-$$('.chip').forEach(function(c){
-  c.onclick = function(){
-    $$('.chip').forEach(function(x){x.classList.remove('active')});
-    c.classList.add('active'); S.subject = c.dataset.subject;
-  };
-});
-
-/* ═══════════════ UPLOAD ═══════════════ */
-var zone = $('#uploadZone'), input = $('#fileInput');
-zone.onclick = function(){ input.click(); };
-zone.ondragover = function(e){ e.preventDefault(); zone.classList.add('drag-over'); };
-zone.ondragleave = function(){ zone.classList.remove('drag-over'); };
-zone.ondrop = function(e){
-  e.preventDefault(); zone.classList.remove('drag-over');
-  if(e.dataTransfer.files[0]){ input.files = e.dataTransfer.files; processFile(e.dataTransfer.files[0]); }
-};
-input.onchange = function(){ if(input.files[0]) processFile(input.files[0]); };
-
-function processFile(file){
-  S.file = file;
-  $('#uploadText').textContent = file.name;
-  $('#uploadIcon').textContent = '✓';
-  zone.style.borderColor = 'var(--gold-dim)';
-  var reader = new FileReader();
-  reader.onload = function(e){ $('#preview').src=e.target.result; $('#preview').classList.add('show'); };
-  reader.readAsDataURL(file);
+function proc(file){
+  S.file=file;$('#uploadText').textContent=file.name;$('#uploadIcon').textContent='✓';zone.style.borderColor='var(--gold-dim)';
+  var r=new FileReader();r.onload=function(e){$('#previewImg').src=e.target.result;$('#previewImg').classList.add('show')};r.readAsDataURL(file);
   upload();
 }
-
 async function upload(){
-  if(!S.file||!S.token) return;
-  var form = new FormData();
-  form.append('file',S.file); form.append('subjectType',S.subject);
-  form.append('sessionId',S.sessionId||'web'); form.append('token',S.token);
-
-  addBubble('user','[ '+S.subject+' 题目图片 ]');
-  addBubble('assistant','⟳ 识别图片文字…');
-
+  if(!S.file||!S.token)return;
+  var f=new FormData();f.append('file',S.file);f.append('subjectType',S.subject);f.append('sessionId',S.sessionId||'web');f.append('token',S.token);
+  addMsg('user','📷 '+S.subject+' 题目');
+  addMsg('assistant','⏳ 正在识别图片文字…');
   try{
-    var r = await fetch('/api/chat/upload?token='+S.token,{method:'POST',body:form});
-    var d = await r.json();
-    var msgs = $$('#chatList .msg.assistant');
-    var lastB = msgs[msgs.length-1].querySelector('.msg-bubble');
+    var r=await fetch('/api/chat/upload?token='+S.token,{method:'POST',body:f});
+    var d=await r.json();
+    var bs=$$('#chatList .msg.assistant .msg-bubble');var lb=bs[bs.length-1];
     if(d.code===200){
-      lastB.innerHTML = '📷 识别结果：<br><br>'+esc(d.data.cleanedText);
-      lastB.style.borderLeftColor = 'var(--sage)';
-      if(S.ws&&S.ws.readyState===WebSocket.OPEN){
-        S.ws.send(JSON.stringify({type:'solve',text:d.data.cleanedText,subjectType:d.data.subjectType}));
-      }
-    }else{
-      lastB.innerHTML = '✕ 识别失败';
-      lastB.style.borderLeftColor = 'var(--red)';
-    }
-  }catch(e){ addBubble('assistant','✕ 网络错误: '+e.message); }
-  resetUpload();
-}
-
-function resetUpload(){
-  S.file=null; input.value='';
-  $('#uploadText').textContent='拖拽或点击上传';
-  $('#uploadIcon').textContent='⊞'; zone.style.borderColor='';
-  $('#preview').classList.remove('show');
+      lb.innerHTML='📷 识别结果：<br><br>'+esc(d.data.cleanedText);lb.style.borderLeftColor='var(--green)';
+      if(S.ws&&S.ws.readyState===WebSocket.OPEN)S.ws.send(JSON.stringify({type:'solve',text:d.data.cleanedText,subjectType:d.data.subjectType}));
+    }else{lb.innerHTML='✕ 识别失败';lb.style.borderLeftColor='var(--red)'}
+  }catch(e){addMsg('assistant','✕ 网络错误: '+e.message)}
+  S.file=null;input.value='';$('#uploadText').textContent='拖拽图片到此处 或 点击选择文件';$('#uploadIcon').textContent='⊞';zone.style.borderColor='';$('#previewImg').classList.remove('show');
 }
 </script>
 </body>
