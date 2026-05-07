@@ -8,4 +8,5 @@ import java.util.List;
 public interface MistakeCollectionRepository extends JpaRepository<MistakeCollection, Long> {
     List<MistakeCollection> findByUserIdOrderByCreatedAtDesc(Long userId);
     List<MistakeCollection> findByUserIdAndCreatedAtBetween(Long userId, LocalDateTime start, LocalDateTime end);
+    void deleteByUserId(Long userId);
 }

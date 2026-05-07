@@ -1,5 +1,111 @@
 前端开发中，我们常需要将 Markdown 文本（如接口文档、博客内容、用户评论）渲染成美观的 HTML 页面。不同于纯文本展示，Markdown 渲染需要借助专门的库解析语法规则，再结合样式实现可视化。本文将聚焦 “如何在前端页面中渲染 Markdown 内容”，从主流库选型到实战案例，带你快速掌握核心方法。
 
+在 HTML 中展示你写的这一段数学内容时，公式没有渲染，**根本原因是没有引入数学公式渲染库**。浏览器的引擎本身不识别 LaTeX 语法，`\frac`、`\ln` 这些代码会被当成普通文本显示，必须借助 **MathJax** 或 **KaTeX** 这样的库来解析和渲染。
+
+下面提供一套**即插即用、具体到你的代码**的解决方案。
+
+---
+
+## 推荐方案：使用 MathJax 3（最兼容、配置灵活）
+
+### 1. 完整 HTML 示例（直接可用）
+
+将你的内容放入以下模板，公式即可正常显示：
+
+<pre><div class="efm_ant-codeHighlighter css-var-re4"><div class="efm_ant-codeHighlighter-code"><pre><code class="language-html"><span><span class="token"><!</span><span class="token doctype-tag">DOCTYPE</span><span class="token"> </span><span class="token name">html</span><span class="token">></span><span>
+</span></span><span><span></span><span class="token"><</span><span class="token">html</span><span class="token"> </span><span class="token">lang</span><span class="token">=</span><span class="token">"</span><span class="token">zh-CN</span><span class="token">"</span><span class="token">></span><span>
+</span></span><span><span></span><span class="token"><</span><span class="token">head</span><span class="token">></span><span>
+</span></span><span><span>  </span><span class="token"><</span><span class="token">meta</span><span class="token"> </span><span class="token">charset</span><span class="token">=</span><span class="token">"</span><span class="token">UTF-8</span><span class="token">"</span><span class="token">></span><span>
+</span></span><span><span>  </span><span class="token"><</span><span class="token">title</span><span class="token">></span><span>微分方程求解</span><span class="token"></</span><span class="token">title</span><span class="token">></span><span>
+</span></span><span><span>  </span><span class="token"><!-- MathJax 配置：关键一步，让它在页面加载后自动渲染 --></span><span>
+</span></span><span><span>  </span><span class="token"><</span><span class="token">script</span><span class="token">></span><span class="token script language-javascript">
+</span></span><span><span class="token script language-javascript">    </span><span class="token script language-javascript dom">window</span><span class="token script language-javascript">.</span><span class="token script language-javascript property-access maybe-class-name">MathJax</span><span class="token script language-javascript"> </span><span class="token script language-javascript">=</span><span class="token script language-javascript"> </span><span class="token script language-javascript">{</span><span class="token script language-javascript">
+</span></span><span><span class="token script language-javascript">      </span><span class="token script language-javascript literal-property">tex</span><span class="token script language-javascript">:</span><span class="token script language-javascript"> </span><span class="token script language-javascript">{</span><span class="token script language-javascript">
+</span></span><span><span class="token script language-javascript">        </span><span class="token script language-javascript">// 行内公式用 $...$ 包裹</span><span class="token script language-javascript">
+</span></span><span><span class="token script language-javascript">        </span><span class="token script language-javascript literal-property">inlineMath</span><span class="token script language-javascript">:</span><span class="token script language-javascript"> </span><span class="token script language-javascript">[</span><span class="token script language-javascript">[</span><span class="token script language-javascript">'$'</span><span class="token script language-javascript">,</span><span class="token script language-javascript"> </span><span class="token script language-javascript">'$'</span><span class="token script language-javascript">]</span><span class="token script language-javascript">]</span><span class="token script language-javascript">,</span><span class="token script language-javascript">
+</span></span><span><span class="token script language-javascript">        </span><span class="token script language-javascript">// 显示公式（独立成行）用 $$...$$ 或者你原文中的 [ ... ]</span><span class="token script language-javascript">
+</span></span><span><span class="token script language-javascript">        </span><span class="token script language-javascript">// 注意：方括号在正则里需转义，但这里写成字符串即可</span><span class="token script language-javascript">
+</span></span><span><span class="token script language-javascript">        </span><span class="token script language-javascript literal-property">displayMath</span><span class="token script language-javascript">:</span><span class="token script language-javascript"> </span><span class="token script language-javascript">[</span><span class="token script language-javascript">[</span><span class="token script language-javascript">'$$'</span><span class="token script language-javascript">,</span><span class="token script language-javascript"> </span><span class="token script language-javascript">'$$'</span><span class="token script language-javascript">]</span><span class="token script language-javascript">,</span><span class="token script language-javascript"> </span><span class="token script language-javascript">[</span><span class="token script language-javascript">'['</span><span class="token script language-javascript">,</span><span class="token script language-javascript"> </span><span class="token script language-javascript">']'</span><span class="token script language-javascript">]</span><span class="token script language-javascript">]</span><span class="token script language-javascript">
+</span></span><span><span class="token script language-javascript">      </span><span class="token script language-javascript">}</span><span class="token script language-javascript">,</span><span class="token script language-javascript">
+</span></span><span><span class="token script language-javascript">      </span><span class="token script language-javascript literal-property">svg</span><span class="token script language-javascript">:</span><span class="token script language-javascript"> </span><span class="token script language-javascript">{</span><span class="token script language-javascript">
+</span></span><span><span class="token script language-javascript">        </span><span class="token script language-javascript literal-property">fontCache</span><span class="token script language-javascript">:</span><span class="token script language-javascript"> </span><span class="token script language-javascript">'global'</span><span class="token script language-javascript">
+</span></span><span><span class="token script language-javascript">      </span><span class="token script language-javascript">}</span><span class="token script language-javascript">
+</span></span><span><span class="token script language-javascript">    </span><span class="token script language-javascript">}</span><span class="token script language-javascript">;</span><span class="token script language-javascript">
+</span></span><span><span class="token script language-javascript">  </span><span class="token"></</span><span class="token">script</span><span class="token">></span><span>
+</span></span><span><span>  </span><span class="token"><!-- 引入 MathJax 核心库 --></span><span>
+</span></span><span><span>  </span><span class="token"><</span><span class="token">script</span><span class="token"> </span><span class="token">id</span><span class="token">=</span><span class="token">"</span><span class="token">MathJax-script</span><span class="token">"</span><span class="token"> </span><span class="token">defer</span><span class="token">
+</span></span><span><span class="token">          </span><span class="token">src</span><span class="token">=</span><span class="token">"</span><span class="token">https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js</span><span class="token">"</span><span class="token">></span><span class="token script language-javascript">
+</span></span><span><span class="token script language-javascript">  </span><span class="token"></</span><span class="token">script</span><span class="token">></span><span>
+</span></span><span><span></span><span class="token"></</span><span class="token">head</span><span class="token">></span><span>
+</span></span><span><span></span><span class="token"><</span><span class="token">body</span><span class="token">></span><span>
+</span></span><span><span>  </span><span class="token"><</span><span class="token">h2</span><span class="token">></span><span>微分方程特解求解过程</span><span class="token"></</span><span class="token">h2</span><span class="token">></span><span>
+</span></span><span>
+</span><span><span>  </span><span class="token"><!-- 你的原始内容，方括号 [ ... ] 作为显示公式 --></span><span>
+</span></span><span><span>  </span><span class="token"><</span><span class="token">p</span><span class="token">></span><span>步骤1: 分离变量</span><span class="token"></</span><span class="token">p</span><span class="token">></span><span>
+</span></span><span><span>  </span><span class="token"><</span><span class="token">p</span><span class="token">></span><span>首先，我们将给定的微分方程 \(y' \sin x = y \ln y\) 写成更易于处理的形式。这里，\(y'\) 表示 \(y\) 对 \(x\) 的导数，即 \(\frac{dy}{dx}\)。因此，方程可以写作：</span><span class="token"></</span><span class="token">p</span><span class="token">></span><span>
+</span></span><span>  [
+</span><span>    \frac{dy}{dx} \sin x = y \ln y
+</span><span>  ]
+</span><span><span>  </span><span class="token"><</span><span class="token">p</span><span class="token">></span><span>接下来，我们将方程两边按照变量 \(y\) 和 \(x\) 分离，得到：</span><span class="token"></</span><span class="token">p</span><span class="token">></span><span>
+</span></span><span>  [
+</span><span>    \frac{dy}{y \ln y} = \frac{dx}{\sin x}
+</span><span>  ]
+</span><span><span>  </span><span class="token"><</span><span class="token">p</span><span class="token">></span><span>步骤2: 积分</span><span class="token"></</span><span class="token">p</span><span class="token">></span><span>
+</span></span><span><span>  </span><span class="token"><</span><span class="token">p</span><span class="token">></span><span>现在我们对等式两边进行积分。左边是对 \(y\) 的积分，右边是对 \(x\) 的积分。</span><span class="token"></</span><span class="token">p</span><span class="token">></span><span>
+</span></span><span><span>  </span><span class="token"><!-- 后面步骤同理，完整粘贴即可 --></span><span>
+</span></span><span>
+</span><span><span>  </span><span class="token"><</span><span class="token">p</span><span class="token">></span><span>最终得到特解：</span><span class="token"></</span><span class="token">p</span><span class="token">></span><span>
+</span></span><span>  [
+</span><span>    y = e^{\csc x - \cot x}
+</span><span>  ]
+</span><span><span></span><span class="token"></</span><span class="token">body</span><span class="token">></span><span>
+</span></span><span><span></span><span class="token"></</span><span class="token">html</span><span class="token">></span></span></code></pre></div></div></pre>
+
+**如果想保留原文里的 `[ ... ]` 定界符**，上面的配置已经支持了。
+**更推荐的做法**是把所有 `[ ... ]` 替换为 `$$ ... $$`，这样可以避免方括号与普通文本冲突，也更通用。
+
+### 2. 如果你把公式放在 `<script>` 或 JS 字符串中（如动态加载）
+
+必须处理**转义**问题。例如在 JS 字符串中写 `\frac` 会被转义成换页符，导致公式损坏。解决办法是使用 `String.raw` 或双重反斜杠：
+
+<pre><div class="efm_ant-codeHighlighter css-var-re4"><div class="efm_ant-codeHighlighter-code"><pre><code class="language-javascript"><span><span class="token">// 用 String.raw 避免反斜杠转义</span><span>
+</span></span><span><span></span><span class="token">const</span><span> content </span><span class="token">=</span><span> </span><span class="token known-class-name">String</span><span class="token">.</span><span class="token property-access">raw</span><span class="token template-string template-punctuation">`</span><span class="token template-string">
+</span></span><span class="token template-string">  当 $a \ne 0$ 时，方程 $ax^2 + bx + c = 0$ 的解为：
+</span><span class="token template-string">  $$x = {-b \pm \sqrt{b^2-4ac} \over 2a}.$$
+</span><span><span class="token template-string"></span><span class="token template-string template-punctuation">`</span><span class="token">;</span><span>
+</span></span><span>
+</span><span><span></span><span class="token">// 插入 DOM 后，手动触发渲染</span><span>
+</span></span><span><span></span><span class="token dom">document</span><span class="token">.</span><span class="token method property-access">getElementById</span><span class="token">(</span><span class="token">'formula-container'</span><span class="token">)</span><span class="token">.</span><span class="token property-access">innerHTML</span><span> </span><span class="token">=</span><span> content</span><span class="token">;</span><span>
+</span></span><span><span></span><span class="token maybe-class-name">MathJax</span><span class="token">.</span><span class="token method property-access">typesetPromise</span><span class="token">(</span><span class="token">[</span><span class="token dom">document</span><span class="token">.</span><span class="token method property-access">getElementById</span><span class="token">(</span><span class="token">'formula-container'</span><span class="token">)</span><span class="token">]</span><span class="token">)</span><span class="token">;</span></span></code></pre></div></div></pre>
+
+### 3. 常见“不渲染”的坑及对策
+
+
+| 现象                                    | 原因                                         | 解决方法                                                                       |
+| --------------------------------------- | -------------------------------------------- | ------------------------------------------------------------------------------ |
+| 公式显示为原始代码（如`\frac{dy}{dx}`） | MathJax 未加载或未执行                       | 确认`tex-svg.js`正确引入；检查网络/firewall                                    |
+| 页面加载时公式闪白再显示                | MathJax 渲染晚于页面显示                     | 给包含公式的元素加`visibility:hidden`，渲染后再显示；或使用`defer`加载 MathJax |
+| 公式完全空白                            | MathML 被误用（Chrome 原生 MathML 支持有限） | 确保内容为 LaTeX 语法，而不是`<math>`标签；一直用 MathJax 处理                 |
+| 部分公式未渲染，特别是有`\text{}`或中文 | 中文未在`\text{}`里，或字体缺失              | 中文部分必须包裹在`\text{中文}`中，并确保主字体支持中文（默认是）              |
+
+---
+
+## 轻量替代：KaTeX（更快，但要求 \$\$ 定界符）
+
+如果你的公式量很大、追求加载速度，可改用 KaTeX。但 KaTeX **默认只认 `$$...$$` 和 `$...$`**，不认方括号。因此需要将原文所有 `[` `]` 替换为 `$$`。
+
+<pre><div class="efm_ant-codeHighlighter css-var-re4"><div class="efm_ant-codeHighlighter-code"><pre><code class="language-html"><span><span class="token"><</span><span class="token">link</span><span class="token"> </span><span class="token">rel</span><span class="token">=</span><span class="token">"</span><span class="token">stylesheet</span><span class="token">"</span><span class="token"> </span><span class="token">href</span><span class="token">=</span><span class="token">"</span><span class="token">https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css</span><span class="token">"</span><span class="token">></span><span>
+</span></span><span><span></span><span class="token"><</span><span class="token">script</span><span class="token"> </span><span class="token">defer</span><span class="token"> </span><span class="token">src</span><span class="token">=</span><span class="token">"</span><span class="token">https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js</span><span class="token">"</span><span class="token">></span><span class="token"></</span><span class="token">script</span><span class="token">></span><span>
+</span></span><span><span></span><span class="token"><</span><span class="token">script</span><span class="token"> </span><span class="token">defer</span><span class="token"> </span><span class="token">src</span><span class="token">=</span><span class="token">"</span><span class="token">https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js</span><span class="token">"</span><span class="token">
+</span></span><span><span class="token">        </span><span class="token special-attr">onload</span><span class="token special-attr">=</span><span class="token special-attr">"</span><span class="token special-attr javascript language-javascript">renderMathInElement</span><span class="token special-attr javascript language-javascript">(</span><span class="token special-attr javascript language-javascript dom">document</span><span class="token special-attr javascript language-javascript">.</span><span class="token special-attr javascript language-javascript property-access">body</span><span class="token special-attr javascript language-javascript">)</span><span class="token special-attr javascript language-javascript">;</span><span class="token special-attr">"</span><span class="token">></span><span class="token"></</span><span class="token">script</span><span class="token">></span></span></code></pre></div></div></pre>
+
+---
+
+## 针对特定框架/环境的快速提示
+
+* **微信小程序 (mp-html)**：必须安装 LaTeX 插件，且公式**只能用 `$$...$$`** 包裹，不能用 `\[\]` 或 `[ ]`。同时 JS 中使用 `String.raw` 避免转义。
+* **HarmonyOS (ArkWeb)**：官方建议用 `Web` 组件加载一个写好的 HTML 页面，在页面内用 MathJax/KaTeX 渲染公式，因为系统暂未提供原生数学公式组件。
+
 一、前端渲染 Markdown 的核心逻辑
 Markdown 本质是 “轻量级标记语言”，无法直接被浏览器识别。前端渲染的核心流程是：
 
@@ -162,6 +268,7 @@ return <h1>Hello Markdown</h1>;
 `);
 
 return (
+
 <div style={{ display: 'flex', gap: '20px', padding: '20px' }}>
 {/* 输入区 */}
 <textarea
@@ -181,28 +288,6 @@ style={{ width: '50%', padding: '20px', border: '1px solid #eee' }}
 </div>
 );
 };
-
-export default MarkdownPreview;
-运行项目并下载源码
-javascript
-运行
-
-关键优势：
-
-安全：默认不渲染script、iframe等危险标签，无需手动处理 XSS；
-插件化：通过remark-*（Markdown 语法扩展）和rehype-*（HTML 处理）插件支持复杂功能；
-TS 友好：自带类型定义，避免类型报错。
-3. showdown.js：功能全面（适合复杂场景）
-showdown.js 是另一个成熟的 Markdown 解析库，支持更多自定义配置（如自动链接、缩写），适合需要高度定制的场景（如企业级文档系统）。
-
-基础使用示例（Vue 项目）：
-
-<template>
-  <div class="markdown-container">
-    <textarea v-model="markdownText" @input="render" placeholder="输入Markdown..."></textarea>
-    <div v-html="htmlContent" class="preview"></div>
-  </div>
-</template>
 
 <script setup>
 import { ref, onMounted } from 'vue';

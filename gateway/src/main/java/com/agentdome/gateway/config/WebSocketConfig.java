@@ -2,6 +2,8 @@ package com.agentdome.gateway.config;
 
 import com.agentdome.agent.AgentService;
 import com.agentdome.agent.QwenService;
+import com.agentdome.agent.memory.ChatHistoryService;
+import com.agentdome.common.mongo.ChatSessionDocument;
 import com.agentdome.common.repository.ProblemRepository;
 import com.agentdome.common.entity.Problem;
 import com.agentdome.common.config.UserProblemTracker;
@@ -27,16 +29,19 @@ public class WebSocketConfig implements WebSocketConfigurer {
     private final JwtUtil jwtUtil;
     private final WsSessionManager sessionManager;
     private final UserProblemTracker problemTracker;
+    private final ChatHistoryService chatHistoryService;
 
     public WebSocketConfig(AgentService agentService, QwenService qwenService,
                            ProblemRepository problemRepo, JwtUtil jwtUtil,
-                           WsSessionManager sessionManager, UserProblemTracker problemTracker) {
+                           WsSessionManager sessionManager, UserProblemTracker problemTracker,
+                           ChatHistoryService chatHistoryService) {
         this.agentService = agentService;
         this.qwenService = qwenService;
         this.problemRepo = problemRepo;
         this.jwtUtil = jwtUtil;
         this.sessionManager = sessionManager;
         this.problemTracker = problemTracker;
+        this.chatHistoryService = chatHistoryService;
     }
 
     @Override
@@ -57,10 +62,13 @@ public class WebSocketConfig implements WebSocketConfigurer {
 
             String query = uri.getQuery();
             String token = null;
+            String reqSessionId = null;
             if (query != null) {
                 for (String param : query.split("&")) {
                     if (param.startsWith("token=")) {
                         token = param.substring(6);
+                    } else if (param.startsWith("sessionId=")) {
+                        reqSessionId = param.substring(10);
                     }
                 }
             }
@@ -71,7 +79,20 @@ public class WebSocketConfig implements WebSocketConfigurer {
             }
 
             Long userId = jwtUtil.getUserIdFromToken(token);
-            String sessionId = agentService.newSession(userId);
+
+            // Reuse existing session if valid, otherwise create new
+            String sessionId;
+            if (reqSessionId != null) {
+                ChatSessionDocument existing = chatHistoryService.getSession(reqSessionId);
+                if (existing != null && existing.getUserId().equals(userId)) {
+                    sessionId = reqSessionId;
+                } else {
+                    sessionId = agentService.newSession(userId);
+                }
+            } else {
+                sessionId = agentService.newSession(userId);
+            }
+
             session.getAttributes().put("userId", userId);
             session.getAttributes().put("sessionId", sessionId);
             sessionManager.register(sessionId, session);
@@ -87,10 +108,18 @@ public class WebSocketConfig implements WebSocketConfigurer {
                 Map<String, Object> msg = mapper.readValue(message.getPayload(), Map.class);
                 String msgType = (String) msg.getOrDefault("type", "text");
 
+                if ("ping".equals(msgType)) {
+                    sendJson(session, Map.of("type", "pong"));
+                    return;
+                }
+
                 if ("solve".equals(msgType)) {
                     // Streaming solve request
                     String text = (String) msg.get("text");
                     String subjectType = (String) msg.getOrDefault("subjectType", "ACM");
+
+                    // Persist user's problem text to chat history
+                    chatHistoryService.appendMessage(sessionId, userId, "user", "📷 [" + subjectType + "] " + text);
 
                     sendJson(session, Map.of("type", "solve-start"));
 
@@ -98,6 +127,8 @@ public class WebSocketConfig implements WebSocketConfigurer {
                             token -> sendJson(session, Map.of("type", "solve-chunk", "chunk", token)),
                             fullText -> {
                                 sendJson(session, Map.of("type", "solve-done"));
+                                // Persist assistant solution to chat history
+                                chatHistoryService.appendMessage(sessionId, userId, "assistant", fullText);
                                 // Save problem
                                 Problem problem = new Problem();
                                 problem.setUserId(userId);
@@ -111,15 +142,21 @@ public class WebSocketConfig implements WebSocketConfigurer {
                             error -> sendJson(session, Map.of("type", "solve-error", "message", error.getMessage()))
                     );
                 } else {
-                    // Regular chat message — extract content if present
+                    // Regular chat message — extract content if present, stream response
                     String userText = msg.containsKey("content") ? (String) msg.get("content") : message.getPayload();
-                    String response = agentService.processMessage(sessionId, userId, userText);
-                    sendJson(session, Map.of("type", "message", "content", response));
+                    agentService.processMessageStream(sessionId, userId, userText,
+                            token -> sendJson(session, Map.of("type", "message-chunk", "chunk", token)),
+                            fullText -> sendJson(session, Map.of("type", "message-done")),
+                            error -> sendJson(session, Map.of("type", "message-error", "message", error.getMessage()))
+                    );
                 }
             } catch (Exception e) {
-                // Not JSON - treat as plain text
-                String response = agentService.processMessage(sessionId, userId, message.getPayload());
-                sendJson(session, Map.of("type", "message", "content", response));
+                // Not JSON - treat as plain text, stream response
+                agentService.processMessageStream(sessionId, userId, message.getPayload(),
+                        token -> sendJson(session, Map.of("type", "message-chunk", "chunk", token)),
+                        fullText -> sendJson(session, Map.of("type", "message-done")),
+                        error -> sendJson(session, Map.of("type", "message-error", "message", error.getMessage()))
+                );
             }
         }
 

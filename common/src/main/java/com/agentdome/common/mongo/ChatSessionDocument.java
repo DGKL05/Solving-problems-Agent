@@ -19,6 +19,7 @@ public class ChatSessionDocument {
 
     private String sessionId;
     private Long userId;
+    private String title;
     private List<ChatMessage> messages;
     private SessionSummary summary;
     private Instant createdAt;

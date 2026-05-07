@@ -14,7 +14,10 @@ public class WsSessionManager {
     private final Map<String, WebSocketSession> sessions = new ConcurrentHashMap<>();
 
     public void register(String sessionId, WebSocketSession session) {
-        sessions.put(sessionId, session);
+        WebSocketSession old = sessions.put(sessionId, session);
+        if (old != null && old.isOpen()) {
+            try { old.close(); } catch (IOException ignored) {}
+        }
     }
 
     public void remove(String sessionId) {

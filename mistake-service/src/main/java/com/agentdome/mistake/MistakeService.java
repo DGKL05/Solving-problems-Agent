@@ -21,15 +21,18 @@ public class MistakeService {
     private final ProblemRepository problemRepo;
     private final TagService tagService;
     private final ProblemTagRepository problemTagRepo;
+    private final TagRepository tagRepo;
 
     public MistakeService(MistakeCollectionRepository mistakeRepo,
                           ProblemRepository problemRepo,
                           TagService tagService,
-                          ProblemTagRepository problemTagRepo) {
+                          ProblemTagRepository problemTagRepo,
+                          TagRepository tagRepo) {
         this.mistakeRepo = mistakeRepo;
         this.problemRepo = problemRepo;
         this.tagService = tagService;
         this.problemTagRepo = problemTagRepo;
+        this.tagRepo = tagRepo;
     }
 
     @Transactional
@@ -69,6 +72,7 @@ public class MistakeService {
             MistakeDTO dto = new MistakeDTO();
             dto.setId(m.getId());
             dto.setProblemId(m.getProblemId());
+            dto.setSessionId(m.getSessionId());
             dto.setCreatedAt(m.getCreatedAt());
             dto.setMemo(m.getMemo());
             if (p != null) {
@@ -76,6 +80,13 @@ public class MistakeService {
                 dto.setCleanedText(p.getCleanedText());
                 dto.setSolutionText(p.getSolutionText());
                 dto.setErrorType(p.getErrorType());
+                // Load tags
+                List<String> tags = problemTagRepo.findByIdProblemId(p.getId())
+                        .stream()
+                        .map(pt -> tagRepo.findById(pt.getId().getTagId()).map(Tag::getName).orElse(null))
+                        .filter(t -> t != null)
+                        .collect(Collectors.toList());
+                dto.setTags(tags);
             }
             return dto;
         }).collect(Collectors.toList());
@@ -92,5 +103,13 @@ public class MistakeService {
             throw new BusinessException("无权删除");
         }
         mistakeRepo.delete(mistake);
+    }
+
+    @Transactional
+    public int clearAllMistakes(Long userId) {
+        List<MistakeCollection> all = mistakeRepo.findByUserIdOrderByCreatedAtDesc(userId);
+        int count = all.size();
+        mistakeRepo.deleteByUserId(userId);
+        return count;
     }
 }

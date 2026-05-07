@@ -11,9 +11,9 @@
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/highlight.min.js"></script>
 <script>
-MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],displayMath:[['$$','$$'],['\\[','\\]']],processEscapes:true}};
+MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],displayMath:[['$$','$$'],['\\[','\\]'],['[',']']],processEscapes:true,processEnvironments:true},svg:{fontCache:'global'},options:{skipHtmlTags:['script','noscript','style','textarea','pre','code']}};
 </script>
-<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
 <style>
 :root {
   --cream:#faf8f5; --white:#fff; --ink:#1b1b1b; --ink2:#5c5c5c;
@@ -83,7 +83,7 @@ input[type=file]{display:none}
 .login-divider::before,.login-divider::after{content:'';flex:1;height:1px;background:var(--border)}
 
 /* ═══════ MAIN APP ═══════ */
-.app{max-width:860px;margin:0 auto;padding:1.5rem 1.5rem 1rem;display:flex;flex-direction:column;height:100vh}
+.app{max-width:100%;margin:0;padding:0;display:flex;flex-direction:column;height:100vh}
 
 /* Topbar */
 .topbar{
@@ -220,27 +220,84 @@ input[type=file]{display:none}
 }
 @keyframes cBlink{0%,100%{opacity:1}50%{opacity:0}}
 
+/* ═══════ CONVERSATION MODAL ═══════ */
+.conv-modal{position:fixed;inset:0;z-index:200;background:var(--cream);display:none;flex-direction:column}
+.conv-modal.open{display:flex}
+.conv-modal-header{
+  display:flex;align-items:center;gap:.8rem;padding:.7rem 1rem;
+  background:var(--white);border-bottom:1px solid var(--border);flex-shrink:0;
+}
+.conv-modal-back{
+  width:40px;height:40px;border:none;background:none;font-size:1.2rem;
+  cursor:pointer;color:var(--ink);border-radius:8px;display:flex;align-items:center;justify-content:center;
+}
+.conv-modal-back:active{background:var(--cream)}
+.conv-modal-title{font-family:'Playfair Display',Georgia,serif;font-size:1rem;font-weight:700;flex:1}
+.conv-modal-tags{display:flex;gap:.3rem;flex-wrap:wrap}
+.conv-modal-body{flex:1;overflow-y:auto;padding:1rem}
+.conv-modal-body .msg{max-width:100%}
+.conv-modal-body .msg.assistant .msg-bubble{font-size:.88rem}
+
 /* ═══════ MISTAKES PANEL ═══════ */
-#mistakesPanel{flex:1;overflow-y:auto;display:none}
+#mistakesPanel{flex:1;overflow-y:auto;display:none;padding:.3rem .2rem}
+.mistake-empty{text-align:center;padding:4rem 2rem;margin:auto}
+.mistake-empty .icon{font-size:2.5rem;margin-bottom:.5rem;opacity:.25}
+
+/* Tag Group Accordion */
+.tag-group{margin-bottom:.3rem}
+.tag-group-header{
+  display:flex;align-items:center;gap:.6rem;padding:.75rem 1rem;
+  background:var(--white);border:1px solid var(--border);border-radius:12px;
+  cursor:pointer;user-select:none;transition:.2s;
+}
+.tag-group-header:hover{border-color:var(--accent);background:var(--accent-lt)}
+.tag-group-arrow{font-size:.7rem;transition:transform .25s;color:var(--ink3);font-family:'JetBrains Mono',monospace}
+.tag-group-header.open .tag-group-arrow{transform:rotate(90deg)}
+.tag-group-label{font-weight:600;font-size:.9rem;color:var(--ink);font-family:'Playfair Display',Georgia,serif}
+.tag-group-count{font-size:.7rem;color:var(--ink3);font-family:'JetBrains Mono',monospace;margin-left:auto}
+.tag-group-body{display:none;margin-left:1.2rem;border-left:2px solid var(--border);padding-left:.8rem}
+.tag-group-body.open{display:block}
+
+/* Subgroup */
+.tag-subgroup{margin:.3rem 0}
+.tag-subgroup-header{
+  display:flex;align-items:center;gap:.5rem;padding:.5rem .8rem;
+  background:var(--cream);border:1px solid var(--border);border-radius:8px;
+  cursor:pointer;user-select:none;transition:.2s;
+}
+.tag-subgroup-header:hover{border-color:var(--copper);background:var(--copper-lt)}
+.tag-subgroup-arrow{font-size:.65rem;transition:transform .25s;color:var(--ink3);font-family:'JetBrains Mono',monospace}
+.tag-subgroup-header.open .tag-subgroup-arrow{transform:rotate(90deg)}
+.tag-subgroup-label{font-size:.8rem;font-weight:500;color:var(--ink2)}
+.tag-subgroup-count{font-size:.65rem;color:var(--ink3);font-family:'JetBrains Mono',monospace;margin-left:auto}
+.tag-subgroup-body{display:none;margin-top:.2rem}
+.tag-subgroup-body.open{display:block}
+
+/* Mistake cards (inside subgroups) */
 .mistake-card{
-  background:var(--white);border:1px solid var(--border);border-radius:14px;
-  box-shadow:var(--shadow);padding:1.3rem 1.5rem;margin-bottom:.8rem;
+  background:var(--white);border:1px solid var(--border);border-radius:10px;
+  box-shadow:var(--shadow);padding:.8rem 1rem;margin-bottom:.35rem;
   transition:.2s;cursor:pointer;
 }
-.mistake-card:hover{border-color:var(--accent);box-shadow:0 2px 8px rgba(44,107,174,.08)}
-.mistake-date{font-size:.7rem;color:var(--ink3);font-family:'JetBrains Mono',monospace}
-.mistake-text{font-size:.88rem;color:var(--ink);margin:.4rem 0;line-height:1.65;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-.mistake-meta{display:flex;gap:.6rem;align-items:center;margin-top:.5rem}
+.mistake-card:hover{border-color:var(--accent)}
+.mistake-date{font-size:.65rem;color:var(--ink3);font-family:'JetBrains Mono',monospace}
+.mistake-text{font-size:.82rem;color:var(--ink);margin:.3rem 0;line-height:1.6}
+.mistake-meta{display:flex;gap:.4rem;align-items:center;margin-top:.35rem;flex-wrap:wrap}
 .mistake-tag{
-  font-size:.68rem;padding:.15rem .6rem;border-radius:6px;
+  font-size:.62rem;padding:.12rem .5rem;border-radius:5px;
   font-family:'JetBrains Mono',monospace;
   background:var(--accent-lt);color:var(--accent);
 }
 .mistake-tag.error-type{background:var(--copper-lt);color:var(--copper)}
-.mistake-detail{overflow:hidden;transition:all .3s}
-.mistake-detail.hidden{display:none}
-.mistake-empty{text-align:center;padding:4rem 2rem;margin:auto}
-.mistake-empty .icon{font-size:2.5rem;margin-bottom:.5rem;opacity:.25}
+.mistake-collapse-btn{
+  font-size:.65rem;color:var(--accent);cursor:pointer;background:none;border:none;
+  padding:.15rem .5rem;border-radius:4px;margin-left:.5rem;
+  font-family:'Source Serif 4',Georgia,serif;
+}
+.mistake-collapse-btn:hover{background:var(--accent-lt)}
+
+.mistake-detail{overflow:hidden;padding-top:.6rem;margin-top:.5rem;border-top:1px solid var(--border)}
+.mistake-detail .solution-label{font-size:.75rem;color:var(--accent);font-weight:600;margin-bottom:.4rem}
 
 /* ═══════ MARKDOWN ═══════ */
 .markdown-body{line-height:1.95}
@@ -283,10 +340,157 @@ input[type=file]{display:none}
 mjx-container{font-size:1em!important;color:var(--ink)!important}
 mjx-container[jax=CHTML][display=true]{margin:.7em 0;overflow-x:auto}
 
-@media(max-width:640px){
+/* Sidebar */
+.app-layout{display:flex;height:100vh}
+.sidebar{width:280px;min-width:280px;background:var(--white);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.sidebar-header{padding:1.2rem 1rem .8rem;border-bottom:1px solid var(--border)}
+.new-chat-btn{width:100%;padding:.65rem 1rem;background:var(--ink);color:var(--white);border:none;border-radius:8px;font-size:.85rem;font-family:'Source Serif 4',Georgia,serif;cursor:pointer;transition:opacity .2s}
+.new-chat-btn:hover{opacity:.85}
+.session-list{flex:1;overflow-y:auto;padding:.5rem 0}
+.session-item{padding:.8rem 1rem;cursor:pointer;border-bottom:1px solid var(--border);transition:background .15s}
+.session-item:hover{background:var(--cream)}
+.session-item.active{background:var(--accent-lt);border-left:3px solid var(--accent)}
+.session-item{position:relative}
+.session-item-title{font-size:.8rem;font-weight:500;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:.2rem;padding-right:1.5rem}
+.session-item-meta{font-size:.65rem;color:var(--ink3)}
+.session-item-del{position:absolute;top:.6rem;right:.6rem;width:20px;height:20px;line-height:20px;text-align:center;border:none;background:none;color:var(--ink3);cursor:pointer;border-radius:4px;font-size:.75rem;opacity:0;transition:opacity .15s}
+.session-item:hover .session-item-del{opacity:1}
+.session-item-del:hover{color:var(--red);background:rgba(201,53,53,.08)}
+.main-content{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.main-content{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.main-content .topbar{border-radius:0;margin-bottom:0;border-bottom:1px solid var(--border)}
+.main-content #solvePanel{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0}
+.main-content .chat-area{flex:1}
+
+@media(max-width:768px){
   html{font-size:16px}
-  .app{padding:.8rem}
-  .upload-card{padding:1rem}
+  body{background-image:none}
+
+  /* ── Sidebar → Slide-out Drawer ── */
+  .app-layout{position:relative}
+  .sidebar-overlay{
+    display:none;position:fixed;inset:0;z-index:99;background:rgba(0,0,0,.35);
+  }
+  .sidebar-overlay.show{display:block;animation:fadeIn .2s ease-out}
+  .sidebar{
+    position:fixed;top:0;left:0;bottom:0;z-index:100;width:85vw;max-width:320px;min-width:0;
+    transform:translateX(-100%);transition:transform .3s cubic-bezier(.4,0,.2,1);
+    box-shadow:none;
+  }
+  .sidebar.open{transform:translateX(0);box-shadow:4px 0 24px rgba(0,0,0,.12)}
+  .sidebar-header{padding:1rem;display:flex;align-items:center;gap:.6rem}
+  .sidebar-header .new-chat-btn{flex:1}
+  .sidebar-close-btn{
+    width:44px;height:44px;border:none;background:none;font-size:1.3rem;
+    color:var(--ink2);cursor:pointer;border-radius:8px;display:flex;
+    align-items:center;justify-content:center;flex-shrink:0;
+  }
+  .sidebar-close-btn:active{background:var(--cream)}
+  .session-item{padding:.75rem 1rem}
+  .session-item-title{font-size:.85rem}
+  .session-item-meta{font-size:.7rem}
+  .session-item-del{opacity:1;width:28px;height:28px;line-height:28px;font-size:.85rem;top:.5rem;right:.5rem}
+  .session-item.active{border-left-width:4px}
+
+  /* ── Topbar ── */
+  .main-content .topbar{
+    padding:.4rem .5rem;border-radius:0;gap:.3rem;flex-wrap:wrap;
+  }
+  .brand-mark{font-size:.55rem;padding:.12rem .35rem}
+  .brand-text{font-size:.82rem}
+  .hamburger{
+    display:flex;align-items:center;justify-content:center;
+    width:40px;height:40px;border:none;background:none;
+    font-size:1.3rem;color:var(--ink);cursor:pointer;border-radius:8px;flex-shrink:0;
+  }
+  .hamburger:active{background:var(--cream)}
+  .topbar .tabs{display:flex;gap:.15rem}
+  .topbar .tab{padding:.3rem .55rem;font-size:.68rem;border-radius:6px;min-height:36px;display:flex;align-items:center}
+  .user-tag{font-size:.6rem;gap:.15rem}
+  .user-tag .status-dot{width:5px;height:5px}
+  .user-tag button{font-size:.58rem!important;padding:.1rem .4rem!important}
+  #statusText{display:none}
+
+  /* ── Chat ── */
+  #solvePanel{flex:1;display:flex;flex-direction:column;overflow:hidden}
+  .chat-area{flex:1;padding:.5rem .2rem;gap:1rem}
+  .chat-area .empty-state{padding:2rem 1rem}
+  .empty-icon{font-size:2rem}
+  .empty-title{font-size:1rem}
+  .empty-sub{font-size:.75rem}
+  .empty-state .upload-hint-btn{font-size:.8rem;padding:.5rem 1.2rem}
+
+  .msg-avatar{width:28px;height:28px;font-size:.62rem}
+  .msg-name{font-size:.78rem}
+  .msg-time{font-size:.6rem}
+  .msg.user .msg-bubble{font-size:.85rem;padding:.6rem .85rem;border-radius:10px 10px 3px 10px}
+  .msg.assistant .msg-bubble{font-size:.88rem;padding-left:1rem;border-left-width:2px}
+
+  /* Markdown mobile */
+  .markdown-body h1{font-size:1.15rem}.markdown-body h2{font-size:1.02rem}.markdown-body h3{font-size:.9rem}
+  .markdown-body pre{font-size:.75rem;padding:.7rem .8rem;border-radius:8px}
+  .markdown-body code{font-size:.75rem}
+  .markdown-body table{font-size:.75rem}
+  .markdown-body td,.markdown-body th{padding:.35em .5em}
+  mjx-container{font-size:.92em!important;overflow-x:auto}
+
+  /* ── Input Bar (fixed bottom on mobile) ── */
+  .chat-input-bar{
+    position:sticky;bottom:0;background:var(--cream);
+    padding:.5rem .5rem;margin-top:.3rem;gap:.3rem;
+    border-top:1px solid var(--border);
+    padding-bottom:max(.5rem, env(safe-area-inset-bottom));
+  }
+  .chat-attach{width:44px;height:44px;border-radius:10px;font-size:1.3rem}
+  .chat-input{padding:.6rem .8rem;font-size:.88rem;min-height:44px;border-radius:10px}
+  .chat-send{padding:.6rem 1rem;font-size:.88rem;min-height:44px;border-radius:10px}
+
+  /* ── Image Preview ── */
+  .img-preview-bar{padding:.5rem 0;gap:.5rem;flex-wrap:wrap}
+  .img-preview-thumb{width:56px;height:44px;border-radius:6px}
+  .img-preview-name{font-size:.72rem}
+  .img-preview-close{width:44px;height:44px;font-size:1.1rem}
+  .chip{padding:.35rem .7rem;font-size:.7rem}
+
+  /* ── Mistakes ── */
+  #mistakesPanel{padding:.2rem 0}
+  .tag-group-header{padding:.6rem .8rem;border-radius:10px}
+  .tag-group-label{font-size:.82rem}
+  .tag-group-body{margin-left:.6rem;padding-left:.5rem}
+  .tag-subgroup-header{padding:.4rem .6rem}
+  .tag-subgroup-label{font-size:.75rem}
+  .mistake-card{padding:.7rem .8rem;border-radius:8px}
+  .mistake-text{font-size:.78rem}
+  .mistake-tag{font-size:.58rem}
+  .mistake-empty{padding:3rem 1rem}
+  .mistake-empty .icon{font-size:2rem}
+
+  /* ── Login ── */
+  .login-screen{padding:1rem}
+  .login-card{max-width:100%;padding:2rem 1.5rem;border-radius:12px}
+  .login-title{font-size:2rem}
+  .login-sub{font-size:.82rem;margin-bottom:1.5rem}
+  .login-input{padding:.75rem .9rem;font-size:.88rem;min-height:44px}
+  .btn{padding:.75rem 1.2rem;font-size:.88rem;min-height:44px}
+  .login-mark{font-size:.6rem}
+  .tab{padding:.4rem .8rem;font-size:.78rem;min-height:44px;display:flex;align-items:center}
+
+  /* ── Conversation Modal ── */
+  .conv-modal-header{padding:.5rem .7rem}
+  .conv-modal-back{width:36px;height:36px;font-size:1.1rem}
+  .conv-modal-title{font-size:.88rem}
+  .conv-modal-body{padding:.5rem}
+  .conv-modal-body .msg.assistant .msg-bubble{font-size:.82rem}
+  .conv-modal-body .msg.user .msg-bubble{font-size:.78rem}
+
+  /* ── MathJax overflow ── */
+  mjx-container[display=true]{overflow-x:auto;-webkit-overflow-scrolling:touch}
+}
+
+/* Hide hamburger on desktop */
+@media(min-width:769px){
+  .hamburger{display:none}
+  .sidebar-close-btn{display:none}
 }
 </style>
 </head>
@@ -329,7 +533,20 @@ mjx-container[jax=CHTML][display=true]{margin:.7em 0;overflow-x:auto}
 
 <!-- ═══════ MAIN APP ═══════ -->
 <div class="app hidden" id="mainApp">
+<div class="app-layout">
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <button class="sidebar-close-btn" onclick="toggleSidebar()" aria-label="关闭菜单">✕</button>
+    <button class="new-chat-btn" onclick="newChat()">+ 新建对话</button>
+  </div>
+  <div class="session-list" id="sessionList"></div>
+</div>
+<!-- Main -->
+<div class="main-content">
 <div class="topbar">
+  <button class="hamburger" onclick="toggleSidebar()" aria-label="菜单">☰</button>
   <div class="brand">
     <span class="brand-mark">AD</span>
     <span class="brand-text">AgentDome</span>
@@ -388,13 +605,33 @@ mjx-container[jax=CHTML][display=true]{margin:.7em 0;overflow-x:auto}
     <div class="empty-sub">解题时 AI 会自动识别错题<br>你也可以在对话中告诉 AI 将题目加入错题本</div>
   </div>
 </div>
+</div></div></div>
+
+<!-- ═══════ CONVERSATION MODAL ═══════ -->
+<div class="conv-modal" id="convModal">
+  <div class="conv-modal-header">
+    <button class="conv-modal-back" onclick="closeConversation()">←</button>
+    <span class="conv-modal-title" id="convTitle">错题详情</span>
+    <div class="conv-modal-tags" id="convTags"></div>
+  </div>
+  <div class="conv-modal-body" id="convBody"></div>
 </div>
 
 <script>
-var S={token:null,userId:null,nick:'',sessionId:null,ws:null,subject:'ACM',pendingFile:null,currentTab:'solve'};
+// Bypass ngrok browser warning for API requests
+(function(){
+  var _fetch=window.fetch;
+  window.fetch=function(u,o){
+    o=o||{};o.headers=o.headers||{};
+    o.headers['ngrok-skip-browser-warning']='1';
+    return _fetch(u,o);
+  };
+})();
+
+var S={token:null,userId:null,nick:'',sessionId:null,ws:null,subject:'ACM',pendingFile:null,currentTab:'solve',lastPong:0,heartbeat:null};
 var $=function(s){return document.querySelector(s);};
 var $$=function(s){return document.querySelectorAll(s);};
-var _streamText='';
+var _streamText='',_msgStreaming=false;
 
 // ── Auto-restore session on page load ──
 (function(){
@@ -408,9 +645,18 @@ var _streamText='';
 if(typeof marked!=='undefined'){
   marked.setOptions({highlight:function(code,lang){if(lang&&hljs.getLanguage(lang))return hljs.highlight(code,{language:lang}).value;return hljs.highlightAuto(code).value;},breaks:true,gfm:true});
 }
-function md(s){try{return marked.parse(s)}catch(e){return esc(s)}}
+function md(s){try{
+  // Protect LaTeX from markdown underscore/asterisk processing
+  var math=[];
+  s=s.replace(/(\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\]|\\\([\s\S]*?\\\)|\$[^$\n\r]+?\$)/g,function(m){
+    math.push(m);return' M'+(math.length-1)+' ';
+  });
+  var html=marked.parse(s);
+  html=html.replace(/ M(\d+) /g,function(_,i){return math[parseInt(i)]});
+  return html;
+}catch(e){return esc(s)}}
 function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
-function typeset(el){if(window.MathJax)MathJax.typesetPromise([el]).catch(function(){})}
+function typeset(el){if(window.MathJax&&MathJax.typesetPromise)MathJax.typesetPromise([el]).catch(function(){})}
 function now(){return new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'})}
 
 // ── Tab switching ──
@@ -463,39 +709,181 @@ async function doRegister(){
   b.textContent='注册';b.disabled=false;
 }
 function doLogout(){
-  if(S.ws)S.ws.close();
+  stopHeartbeat();
+  if(S.ws){S.ws.onclose=null;S.ws.close();}
   localStorage.removeItem('ad_token');localStorage.removeItem('ad_uid');localStorage.removeItem('ad_nick');
-  S={token:null,userId:null,nick:'',sessionId:null,ws:null,subject:'ACM',pendingFile:null,currentTab:'solve'};
+  S={token:null,userId:null,nick:'',sessionId:null,ws:null,subject:'ACM',pendingFile:null,currentTab:'solve',lastPong:0,heartbeat:null};
   $('#mainApp').classList.add('hidden');$('#loginScreen').classList.remove('hidden');
   $('#chatArea').innerHTML='<div class="empty-state" id="emptyState"><div class="empty-icon">◈</div><div class="empty-title">AgentDome 解题助手</div><div class="empty-sub">上传题目图片，AI 实时流式输出解答<br>支持追问和讨论</div><button class="upload-hint-btn" onclick="document.getElementById(\'fileInput\').click()">📷 拍照/上传题目</button></div>';
-  $('#userName').textContent='--';setStatus(false,'已退出');
+  $('#sessionList').innerHTML='';$('#userName').textContent='--';setStatus(false,'已退出');
 }
 function showError(m){var e=$('#loginError');e.textContent=m;e.classList.remove('hidden');setTimeout(function(){e.classList.add('hidden')},3000)}
 function enterApp(t,u,n){
   S.token=t;S.userId=u;S.nick=n;
   localStorage.setItem('ad_token',t);localStorage.setItem('ad_uid',u);localStorage.setItem('ad_nick',n);
   $('#loginScreen').classList.add('hidden');$('#mainApp').classList.remove('hidden');
-  $('#userName').textContent=n;connectWS();
+  $('#userName').textContent=n;connectWS();loadSessions();
+}
+
+// ── Session History ──
+function loadSessions(){
+  if(!S.token)return;
+  fetch('/api/chat/sessions',{headers:{'Authorization':'Bearer '+S.token}})
+    .then(function(r){return r.json()})
+    .then(function(d){
+      if(d.code===200)renderSessionList(d.data||[]);
+    }).catch(function(){});
+}
+function renderSessionList(sessions){
+  var el=$('#sessionList');if(!el)return;
+  el.innerHTML=sessions.map(function(s){
+    var date=s.createdAt?new Date(s.createdAt).toLocaleDateString('zh-CN'):'';
+    return '<div class="session-item'+(s.sessionId===S.sessionId?' active':'')+'" onclick="selectSession(\''+s.sessionId+'\')">'+
+      '<button class="session-item-del" onclick="event.stopPropagation();deleteSession(\''+s.sessionId+'\')" title="删除">×</button>'+
+      '<div class="session-item-title">'+esc(s.title||'新对话')+'</div>'+
+      '<div class="session-item-meta">'+date+' · '+(s.messageCount||0)+' 条消息</div></div>';
+  }).join('');
+}
+function toggleSidebar(){
+  var sb=$('#sidebar');var ov=$('#sidebarOverlay');if(!sb)return;
+  var open=!sb.classList.contains('open');
+  if(open){sb.classList.add('open');if(ov)ov.classList.add('show')}
+  else{sb.classList.remove('open');if(ov)ov.classList.remove('show')}
+}
+function closeSidebar(){$('#sidebar').classList.remove('open');var ov=$('#sidebarOverlay');if(ov)ov.classList.remove('show')}
+function newChat(){
+  S.sessionId=null;_streamText='';S._wasStreaming=false;
+  $('#chatArea').innerHTML='<div class="empty-state" id="emptyState"><div class="empty-icon">◈</div><div class="empty-title">AgentDome 解题助手</div><div class="empty-sub">上传题目图片，AI 实时流式输出解答<br>支持追问和讨论</div><button class="upload-hint-btn" onclick="document.getElementById(\'fileInput\').click()">📷 拍照/上传题目</button></div>';
+  if(S.ws){S.ws.onclose=null;S.ws.close();}
+  connectWS();closeSidebar();
+}
+function selectSession(sessionId){
+  if(!S.token||sessionId===S.sessionId)return;
+  fetch('/api/chat/sessions/'+sessionId,{headers:{'Authorization':'Bearer '+S.token}})
+    .then(function(r){return r.json()})
+    .then(function(d){
+      if(d.code!==200||!d.data)return;
+      var doc=d.data;
+      S.sessionId=sessionId;
+      var chat=$('#chatArea');chat.innerHTML='';
+      var emptyEl=document.getElementById('emptyState');
+      if(emptyEl)emptyEl.style.display='none';
+      (doc.messages||[]).forEach(function(m){
+        if(m.role==='system')return;
+        var role=m.role==='user'?'user':'assistant';
+        addHistoryMsg(role,m.content,m.timestamp);
+      });
+      // Reconnect WS with the selected session
+      if(S.ws){S.ws.onclose=null;S.ws.close();}
+      connectWS(sessionId);closeSidebar();
+    }).catch(function(){});
+}
+function deleteSession(sessionId){
+  if(!S.token||!confirm('确定删除该对话？'))return;
+  fetch('/api/chat/sessions/'+sessionId,{method:'DELETE',headers:{'Authorization':'Bearer '+S.token}})
+    .then(function(r){return r.json()})
+    .then(function(d){
+      if(d.code===200){
+        if(S.sessionId===sessionId){S.sessionId=null;_streamText='';$('#chatArea').innerHTML='<div class="empty-state" id="emptyState"><div class="empty-icon">◈</div><div class="empty-title">AgentDome 解题助手</div><div class="empty-sub">上传题目图片，AI 实时流式输出解答<br>支持追问和讨论</div><button class="upload-hint-btn" onclick="document.getElementById(\'fileInput\').click()">📷 拍照/上传题目</button></div>';}
+        loadSessions();
+      }
+    }).catch(function(){});
+}
+function addHistoryMsg(role,text,ts){
+  var d=document.createElement('div');d.className='msg '+role;
+  var av=role==='assistant'?'AI':(S.nick.charAt(0)||'?');
+  var rn=role==='assistant'?'AI 助手':S.nick;
+  var time=ts?new Date(ts).toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'}):'';
+  var isMd=role==='assistant'&&text;
+  d.innerHTML='<div class="msg-header"><div class="msg-avatar">'+av+'</div><span class="msg-name">'+rn+'</span><span class="msg-time">'+time+'</span></div>'+
+    '<div class="msg-body"><div class="msg-bubble'+(isMd?' markdown-body':'')+'">'+(isMd?md(text):esc(text))+'</div></div>';
+  $('#chatArea').appendChild(d);
+  if(isMd)requestAnimationFrame(function(){typeset(d)});
+  $('#chatArea').scrollTop=$('#chatArea').scrollHeight;
 }
 
 // ── WebSocket ──
-function connectWS(){
+function connectWS(sessionId){
   var proto=location.protocol==='https:'?'wss':'ws';
-  S.ws=new WebSocket(proto+'://'+location.host+'/ws/chat?token='+S.token);
-  S.ws.onopen=function(){setStatus(true,'在线')};
+  var url=proto+'://'+location.host+'/ws/chat?token='+S.token;
+  if(sessionId)url+='&sessionId='+sessionId;
+  S.ws=new WebSocket(url);
+  S.ws.onopen=function(){setStatus(true,'在线');S.lastPong=Date.now();startHeartbeat();if(S._wasStreaming)recoverStream()};
   S.ws.onmessage=function(e){
     var m=JSON.parse(e.data);
-    if(m.type==='connected'){S.sessionId=m.sessionId}
+    if(m.type==='pong'){S.lastPong=Date.now();return}
+    if(m.type==='connected'){
+      S.sessionId=m.sessionId;loadSessions();
+      if(S._wasStreaming)recoverStream();
+    }
     else if(m.type==='solve-start'){addMsg('assistant','',true)}
     else if(m.type==='solve-chunk'){appendStream(m.chunk)}
-    else if(m.type==='solve-done'){finishStream()}
-    else if(m.type==='solve-error'){appendStream('\n\n[错误: '+m.message+']');finishStream()}
+    else if(m.type==='solve-done'){finishStream();loadSessions();S._wasStreaming=false}
+    else if(m.type==='solve-error'){appendStream('\n\n[错误: '+m.message+']');finishStream();loadSessions();S._wasStreaming=false}
     else if(m.type==='problem-saved'){}
-    else if(m.type==='message'){addMsg('assistant',m.content)}
+    else if(m.type=='message-chunk'){
+      if(!_msgStreaming){_msgStreaming=true;addMsg('assistant','',true)}
+      appendStream(m.chunk);
+    }
+    else if(m.type=='message-done'){_msgStreaming=false;finishStream();loadSessions();S._wasStreaming=false}
+    else if(m.type=='message-error'){_msgStreaming=false;appendStream('\n\n[错误: '+m.message+']');finishStream();loadSessions();S._wasStreaming=false}
+    else if(m.type=='message'){addMsg('assistant',m.content)}
   };
-  S.ws.onclose=function(){setStatus(false,'重连中…');setTimeout(connectWS,3000)};
+  S.ws.onclose=function(){
+    setStatus(false,'重连中…');
+    stopHeartbeat();
+    if(_streamText){S._wasStreaming=true;addMsg('assistant','⚠ 连接中断，正在重连…');_streamText=''}
+    setTimeout(function(){connectWS(S.sessionId)},3000);
+  };
   S.ws.onerror=function(){setStatus(false,'错误')};
 }
+// Recover stream after reconnection — reload session to get server-saved messages
+function recoverStream(){
+  if(!S.sessionId||!S.token)return;
+  fetch('/api/chat/sessions/'+S.sessionId,{headers:{'Authorization':'Bearer '+S.token}})
+    .then(function(r){return r.json()})
+    .then(function(d){
+      if(!d.data||!d.data.messages)return;
+      // Find the last assistant message (the completed AI response)
+      var msgs=d.data.messages;
+      var lastAsst=null;
+      for(var i=msgs.length-1;i>=0;i--){if(msgs[i].role==='assistant'){lastAsst=msgs[i];break}}
+      if(lastAsst){
+        // Replace the "connecting" placeholder with the actual response
+        var bs=$$('#chatArea .msg.assistant .msg-bubble');
+        for(var j=bs.length-1;j>=0;j--){
+          if(bs[j].textContent.indexOf('连接中断')>=0){
+            bs[j].classList.remove('streaming');bs[j].classList.add('markdown-body');
+            bs[j].innerHTML=md(lastAsst.content);
+            requestAnimationFrame(function(){typeset(bs[j])});
+            break;
+          }
+        }
+      }
+      S._wasStreaming=false;
+    }).catch(function(){S._wasStreaming=false});
+}
+// Page Visibility — reconnect when user returns to tab
+document.addEventListener('visibilitychange',function(){
+  if(!document.hidden&&S.token&&(!S.ws||S.ws.readyState!==WebSocket.OPEN)){
+    connectWS(S.sessionId);
+  }
+});
+function startHeartbeat(){
+  stopHeartbeat();
+  S.lastPong=Date.now();
+  S.heartbeat=setInterval(function(){
+    if(S.ws&&S.ws.readyState===WebSocket.OPEN){
+      S.ws.send(JSON.stringify({type:'ping'}));
+      if(Date.now()-S.lastPong>30000){
+        // No pong for 30s — connection dead, reconnect
+        if(S.ws){S.ws.onclose=null;S.ws.close();}
+        connectWS(S.sessionId);
+      }
+    }
+  },15000);
+}
+function stopHeartbeat(){if(S.heartbeat){clearInterval(S.heartbeat);S.heartbeat=null}}
 function setStatus(on,m){$('#statusDot').className='status-dot'+(on?'':' off');$('#statusText').textContent=m}
 
 // ── Chat Messages ──
@@ -511,7 +899,7 @@ function addMsg(role,text,streaming){
   d.innerHTML='<div class="msg-header"><div class="msg-avatar">'+av+'</div><span class="msg-name">'+rn+'</span><span class="msg-time">'+now()+'</span></div>'+
     '<div class="msg-body"><div class="msg-bubble'+cls+(isMd?' markdown-body':'')+'">'+(isMd?md(text):esc(text))+(streaming?'<span class="stream-cursor"></span>':'')+'</div></div>';
   chatArea.appendChild(d);
-  if(isMd&&!streaming)typeset(d);
+  if(isMd&&!streaming)requestAnimationFrame(function(){typeset(d)});
   chatArea.scrollTop=chatArea.scrollHeight;
 }
 function appendStream(text){
@@ -523,7 +911,8 @@ function appendStream(text){
 function finishStream(){
   var ms=$$('#chatArea .msg.assistant');var l=ms[ms.length-1];if(!l)return;
   var b=l.querySelector('.msg-bubble');b.classList.remove('streaming');b.classList.add('markdown-body');
-  b.innerHTML=md(_streamText);typeset(b);_streamText='';
+  b.innerHTML=md(_streamText);_streamText='';
+  requestAnimationFrame(function(){typeset(b)});
 }
 
 // ── Subject chips (for image preview bar) ──
@@ -588,36 +977,138 @@ async function loadMistakes(){
     var d=await r.json();
     var items=(d.data||[]);
     if(!items.length){showMistakesEmpty('暂无错题','解题时会自动记录');return}
-    $('#mistakesPanel').innerHTML=items.map(function(m,idx){
+
+    // Group by primary tag → secondary tag
+    var groups={};var uncategorized=[];
+    items.forEach(function(m){
+      var tags=m.tags||[];
+      var primary=tags[0]||null;
+      var secondary=tags[1]||null;
+      if(!primary){uncategorized.push(m);return;}
+      if(!groups[primary])groups[primary]={};
+      if(!groups[primary][secondary||'其他'])groups[primary][secondary||'其他']=[];
+      groups[primary][secondary||'其他'].push(m);
+    });
+
+    // Store mistakes lookup for onclick — avoids escaping issues
+    S._mistakes={};
+    function cardHTML(m,showSubject){
       var date=new Date(m.createdAt).toLocaleDateString('zh-CN');
-      return '<div class="mistake-card" id="mcard'+idx+'" onclick="toggleMistake('+idx+')">'+
+      var rawTitle=m.cleanedText||'题目预览';
+      S._mistakes[m.id]=m;
+      return '<div class="mistake-card" onclick="viewConversation('+m.id+')">'+
         '<div class="mistake-date">'+date+' · #'+m.id+'</div>'+
-        '<div class="mistake-text" id="mtext'+idx+'">'+esc(m.cleanedText||'题目预览')+'</div>'+
+        '<div class="mistake-text">'+esc(rawTitle)+'</div>'+
         '<div class="mistake-meta">'+
-          (m.subjectType?'<span class="mistake-tag">'+esc(m.subjectType)+'</span>':'')+
+          (showSubject&&m.subjectType?'<span class="mistake-tag">'+esc(m.subjectType)+'</span>':'')+
           (m.errorType?'<span class="mistake-tag error-type">'+esc(m.errorType)+'</span>':'')+
-          (m.memo?'<span style="font-size:.75rem;color:var(--ink2)">📝 '+esc(m.memo)+'</span>':'')+
-          '<span style="font-size:.7rem;color:var(--accent);margin-left:auto;cursor:pointer">展开 ▾</span>'+
-        '</div>'+
-        '<div class="mistake-detail hidden" id="mdetail'+idx+'">'+
-          '<div style="margin-top:1rem;padding-top:.8rem;border-top:1px solid var(--border)">'+
-            '<div style="font-size:.75rem;color:var(--accent);font-weight:600;margin-bottom:.4rem">🤖 AI 解答</div>'+
-            '<div class="markdown-body" id="msolution'+idx+'">'+md(m.solutionText||'暂无解答')+'</div>'+
-          '</div>'+
+          (m.tags||[]).slice(showSubject?1:0).map(function(t){return '<span class="mistake-tag">'+esc(t)+'</span>'}).join('')+
+          '<span style="font-size:.65rem;color:var(--accent);margin-left:auto">查看对话 →</span>'+
         '</div></div>';
-    }).join('');
-    // Typeset math after render
-    setTimeout(function(){$$('.mistake-detail .markdown-body').forEach(function(el){typeset(el)})},200);
+    }
+
+    var html='';var gid=0;
+    Object.keys(groups).sort().forEach(function(primary){
+      var subgroups=groups[primary];
+      var total=0;Object.values(subgroups).forEach(function(s){total+=s.length});
+      html+='<div class="tag-group">';
+      html+='<div class="tag-group-header" onclick="toggleTagGroup('+gid+')">';
+      html+='<span class="tag-group-arrow">▶</span>';
+      html+='<span class="tag-group-label">'+esc(primary)+'</span>';
+      html+='<span class="tag-group-count">'+total+'题</span></div>';
+      html+='<div class="tag-group-body" id="tgb'+gid+'">';
+      var sgid=0;
+      Object.keys(subgroups).sort().forEach(function(secondary){
+        var mistakes=subgroups[secondary];
+        var sid=gid+'_'+sgid;
+        html+='<div class="tag-subgroup">';
+        html+='<div class="tag-subgroup-header" onclick="event.stopPropagation();toggleTagSubgroup(\''+sid+'\')">';
+        html+='<span class="tag-subgroup-arrow">▶</span>';
+        html+='<span class="tag-subgroup-label">'+esc(secondary)+'</span>';
+        html+='<span class="tag-subgroup-count">'+mistakes.length+'题</span></div>';
+        html+='<div class="tag-subgroup-body" id="tgsb'+sid+'">';
+        mistakes.forEach(function(m){html+=cardHTML(m,false)});
+        html+='</div></div>';
+        sgid++;
+      });
+      html+='</div></div>';
+      gid++;
+    });
+
+    if(uncategorized.length){
+      html+='<div class="tag-group">';
+      html+='<div class="tag-group-header" onclick="toggleTagGroup('+gid+')">';
+      html+='<span class="tag-group-arrow">▶</span>';
+      html+='<span class="tag-group-label">未分类</span>';
+      html+='<span class="tag-group-count">'+uncategorized.length+'题</span></div>';
+      html+='<div class="tag-group-body" id="tgb'+gid+'">';
+      uncategorized.forEach(function(m){html+=cardHTML(m,true)});
+      html+='</div></div>';
+    }
+
+    $('#mistakesPanel').innerHTML=html;
   }catch(e){showMistakesEmpty('加载失败')}
 }
 function showMistakesEmpty(title,sub){
   $('#mistakesPanel').innerHTML='<div class="mistake-empty"><div class="icon">📋</div><div class="empty-title">'+title+'</div>'+(sub?'<div class="empty-sub">'+sub+'</div>':'')+'</div>';
 }
-function toggleMistake(idx){
-  var d=$('#mdetail'+idx);var t=$('#mtext'+idx);
-  if(d.classList.contains('hidden')){d.classList.remove('hidden');t.style.webkitLineClamp='unset';t.style.overflow='visible'}
-  else{d.classList.add('hidden');t.style.webkitLineClamp='3';t.style.overflow='hidden'}
+function toggleTagGroup(gid){
+  var b=$('#tgb'+gid);var h=b?b.parentElement.querySelector('.tag-group-header'):null;
+  if(!b)return;
+  if(b.classList.contains('open')){b.classList.remove('open');if(h)h.classList.remove('open')}
+  else{b.classList.add('open');if(h)h.classList.add('open')}
 }
+function toggleTagSubgroup(sid){
+  var b=$('#tgsb'+sid);var h=b?b.parentElement.querySelector('.tag-subgroup-header'):null;
+  if(!b)return;
+  if(b.classList.contains('open')){b.classList.remove('open');if(h)h.classList.remove('open')}
+  else{b.classList.add('open');if(h)h.classList.add('open')}
+}
+// ── Conversation Modal ──
+function viewConversation(mistakeId){
+  if(!S.token)return;
+  var m=S._mistakes&&S._mistakes[mistakeId];
+  if(!m)return;
+  var title=m.cleanedText||'题目预览';
+  $('#convTitle').textContent=title.length>40?title.substring(0,40)+'…':title;
+  var tagsHtml='';
+  (m.tags||[]).forEach(function(t){if(t)tagsHtml+='<span class="mistake-tag">'+esc(t)+'</span>'});
+  $('#convTags').innerHTML=tagsHtml;
+  $('#convModal').classList.add('open');
+
+  // Always show solution text
+  var html='';
+  html+='<div class="msg assistant"><div class="msg-header"><div class="msg-avatar">AI</div><span class="msg-name">AI 解答</span></div>'+
+    '<div class="msg-body"><div class="msg-bubble markdown-body">'+md(m.solutionText||'暂无解答')+'</div></div></div>';
+
+  // If sessionId exists, also load full conversation
+  if(m.sessionId){
+    $('#convBody').innerHTML='<div style="text-align:center;padding:2rem;color:var(--ink3)">加载对话记录…</div>';
+    fetch('/api/chat/sessions/'+m.sessionId,{headers:{'Authorization':'Bearer '+S.token}})
+      .then(function(r){return r.json()})
+      .then(function(d){
+        var fullHtml='';
+        if(d.data&&d.data.messages){
+          d.data.messages.forEach(function(msg){
+            if(msg.role==='system')return;
+            var role=msg.role==='user'?'user':'assistant';
+            var av=role==='assistant'?'AI':'U';
+            var rn=role==='assistant'?'AI 助手':'用户';
+            var time=msg.timestamp?new Date(msg.timestamp).toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'}):'';
+            var isMd=role==='assistant';
+            fullHtml+='<div class="msg '+role+'"><div class="msg-header"><div class="msg-avatar">'+av+'</div><span class="msg-name">'+rn+'</span><span class="msg-time">'+time+'</span></div>'+
+              '<div class="msg-body"><div class="msg-bubble'+(isMd?' markdown-body':'')+'">'+(isMd?md(msg.content):esc(msg.content))+'</div></div></div>';
+          });
+        }
+        $('#convBody').innerHTML=fullHtml||html;
+        requestAnimationFrame(function(){$$('#convBody .markdown-body').forEach(function(el){typeset(el)})});
+      }).catch(function(){$('#convBody').innerHTML=html});
+  }else{
+    $('#convBody').innerHTML=html;
+    requestAnimationFrame(function(){$$('#convBody .markdown-body').forEach(function(el){typeset(el)})});
+  }
+}
+function closeConversation(){$('#convModal').classList.remove('open')}
 
 </script>
 </body>

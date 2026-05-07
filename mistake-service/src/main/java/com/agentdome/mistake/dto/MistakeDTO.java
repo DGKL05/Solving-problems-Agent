@@ -13,6 +13,7 @@ public class MistakeDTO {
     private String solutionText;
     private String errorType;
     private String memo;
+    private String sessionId;
     private List<String> tags;
     private LocalDateTime createdAt;
 }
