@@ -11,17 +11,22 @@ import com.agentdome.common.util.JwtUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.*;
 import org.springframework.web.socket.config.annotation.*;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.net.URI;
+import java.util.List;
 import java.util.Map;
 
 @Configuration
 @EnableWebSocket
 public class WebSocketConfig implements WebSocketConfigurer {
+
+    @Value("${cors.allowed-origins:http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173}")
+    private String allowedOrigins;
 
     private final AgentService agentService;
     private final QwenService qwenService;
@@ -47,7 +52,9 @@ public class WebSocketConfig implements WebSocketConfigurer {
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         registry.addHandler(new ChatWebSocketHandler(), "/ws/chat")
-                .setAllowedOrigins("*");
+                .setAllowedOriginPatterns(
+                        List.of(allowedOrigins.split(","))
+                                .stream().map(String::trim).toArray(String[]::new));
     }
 
     class ChatWebSocketHandler extends TextWebSocketHandler {

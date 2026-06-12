@@ -10,7 +10,7 @@ spring:
   datasource:
     url: jdbc:mysql://${MYSQL_HOST:localhost}:3306/agent_dome?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
     username: ${MYSQL_USER:root}
-    password: ${MYSQL_PASSWORD:}
+    password: ${MYSQL_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
@@ -22,10 +22,11 @@ spring:
         format_sql: true
   data:
     mongodb:
-      uri: mongodb://localhost:27017/agent_dome
+      uri: ${MONGODB_URI:mongodb://${MONGO_ROOT_USER:admin}:${MONGO_ROOT_PASSWORD}@localhost:27017/agent_dome?authSource=admin}
     redis:
       host: ${REDIS_HOST:localhost}
       port: 6379
+      password: ${REDIS_PASSWORD}
       timeout: 3000ms
       lettuce:
         pool:
@@ -38,18 +39,18 @@ server:
 
 aliyun:
   dashscope:
-    api-key: ${DASHSCOPE_API_KEY:}
+    api-key: ${DASHSCOPE_API_KEY}
   ocr:
-    access-key-id: ${ALIYUN_ACCESS_KEY_ID:}
-    access-key-secret: ${ALIYUN_ACCESS_KEY_SECRET:}
+    access-key-id: ${ALIYUN_ACCESS_KEY_ID}
+    access-key-secret: ${ALIYUN_ACCESS_KEY_SECRET}
 
 wechat:
-  app-id: ${WECHAT_APP_ID:}
-  app-secret: ${WECHAT_APP_SECRET:}
+  app-id: ${WECHAT_APP_ID}
+  app-secret: ${WECHAT_APP_SECRET}
 
 
 jwt:
-  secret: ${JWT_SECRET:change-me-in-production-to-a-secure-key-at-least-256-bits-long}
+  secret: ${JWT_SECRET}
   expiration-ms: 604800000
 
 

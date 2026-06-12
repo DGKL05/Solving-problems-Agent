@@ -3,7 +3,7 @@ services:
   mysql:
     image: mysql:8.0
     environment:
-      MYSQL_ROOT_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-change-me-in-production}
       MYSQL_DATABASE: agent_dome
     ports:
       - "3306:3306"
@@ -12,11 +12,16 @@ services:
 
   redis:
     image: redis:7-alpine
+    command: redis-server --requirepass ${REDIS_PASSWORD:-change-me-in-production}
     ports:
       - "6379:6379"
 
   mongodb:
     image: mongo:7
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-change-me-in-production}
+      MONGO_INITDB_DATABASE: agent_dome
     ports:
       - "27017:27017"
     volumes:

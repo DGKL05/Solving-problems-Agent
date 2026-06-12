@@ -19,6 +19,10 @@ public class SecurityConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
+        // Rate limit auth endpoints to prevent brute-force attacks
+        registry.addInterceptor(new RateLimitInterceptor())
+                .addPathPatterns("/api/auth/web-login", "/api/auth/register", "/api/auth/login");
+
         registry.addInterceptor(new AuthInterceptor(jwtUtil))
                 .addPathPatterns("/api/**")
                 .excludePathPatterns("/api/auth/**", "/api/health");
@@ -42,7 +46,11 @@ public class SecurityConfig implements WebMvcConfigurer {
                 token = authHeader.substring(7);
             }
 
-            // Fallback to request parameter (for wx.uploadFile compatibility)
+            // Fallback to request parameter.
+            // NOTE: This is a security tradeoff — tokens in URLs may be logged
+            // by proxies/access logs. Required for wx.uploadFile compatibility
+            // where custom headers may be stripped. Ensure access logs are
+            // sanitized in production (strip ?token= from log entries).
             if (token == null || token.isEmpty()) {
                 token = request.getParameter("token");
             }
