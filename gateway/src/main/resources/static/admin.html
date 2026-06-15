@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI 智能刷题系统 - 管理后台</title>
+  <style>
+    *{box-sizing:border-box}body{margin:0;background:#f3f6fb;color:#1f2937;font-family:Arial,"Microsoft YaHei",sans-serif}header{padding:20px 28px;background:#2563eb;color:white}header h1{margin:0 0 6px;font-size:24px}.wrap{max-width:1280px;margin:22px auto;padding:0 16px}.card{background:white;border-radius:14px;padding:18px;margin-bottom:16px;box-shadow:0 8px 22px rgba(15,23,42,.06)}.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.tabs button{background:#e8efff;color:#1d4ed8}.tabs button.active{background:#2563eb;color:white}input,select,textarea{min-width:170px;padding:9px 10px;border:1px solid #d1d5db;border-radius:8px}textarea{width:100%;min-height:64px}button{border:0;border-radius:8px;padding:9px 14px;background:#2563eb;color:white;cursor:pointer}button.gray{background:#64748b}button.danger{background:#dc2626}button.green{background:#16a34a}button:hover{opacity:.9}.hidden{display:none}.tip{font-size:13px;color:#64748b}.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin-top:10px}table{width:100%;border-collapse:collapse;margin-top:12px;font-size:14px}th,td{border-bottom:1px solid #e5e7eb;padding:10px;text-align:left;vertical-align:top}th{background:#f8fafc}pre{background:#111827;color:#d1d5db;padding:12px;border-radius:10px;overflow:auto;min-height:120px}.top-links a{color:white;margin-right:14px}.actions button{margin-right:6px;margin-bottom:4px}
+  </style>
+</head>
+<body>
+<header>
+  <h1>AI 智能刷题与错题管理系统 - 管理后台</h1>
+  <div class="top-links">
+    <a href="/">AI 解题页</a>
+    <a href="/crud.html">基础 CRUD 页</a>
+    <a href="/extended-crud.html">扩展 CRUD 页</a>
+  </div>
+</header>
+<div class="wrap">
+  <section class="card">
+    <h2>登录认证</h2>
+    <div class="row">
+      <input id="username" placeholder="用户名" value="test" />
+      <input id="password" type="password" placeholder="密码" value="123456" />
+      <button onclick="register()">注册</button>
+      <button onclick="login()">登录</button>
+      <button class="gray" onclick="guest()">游客登录</button>
+    </div>
+    <textarea id="token" placeholder="登录后 Token 会显示在这里，也可以手动粘贴"></textarea>
+  </section>
+
+  <section class="card tabs" id="tabs"></section>
+
+  <section class="card">
+    <h2 id="moduleTitle">模块管理</h2>
+    <p class="tip" id="moduleTip"></p>
+    <div class="form-grid" id="formArea"></div>
+    <div class="row" style="margin-top:12px">
+      <button class="green" onclick="saveRecord()">保存/新增</button>
+      <button class="gray" onclick="resetForm()">清空表单</button>
+      <button onclick="loadRecords()">查询列表</button>
+    </div>
+    <div id="tableArea"></div>
+  </section>
+
+  <section class="card">
+    <h2>接口返回</h2>
+    <pre id="log">等待操作...</pre>
+  </section>
+</div>
+<script>
+const modules={
+  users:{title:'用户管理',tip:'支持用户新增、分页查询、编辑昵称/角色/密码、删除。',url:'/api/users',page:true,id:'id',cols:['id','username','nickname','role','createdAt'],fields:[['username','用户名'],['password','密码'],['nickname','昵称'],['role','角色','select',['USER','ADMIN']],['avatarUrl','头像地址']]},
+  problems:{title:'题目管理',tip:'支持题目录入、分页查询、修改题目内容和答案、删除。',url:'/api/problems',page:true,id:'id',cols:['id','subjectType','cleanedText','solutionText','errorType'],fields:[['subjectType','题型','select',['ACM','MATH','CS408']],['cleanedText','题目内容'],['solutionText','解答内容'],['solutionCode','代码答案'],['errorType','错误类型']]},
+  tags:{title:'标签管理',tip:'支持标签新增、查询、修改颜色、删除。',url:'/api/tags',page:false,id:'id',cols:['id','name','color'],fields:[['name','标签名称'],['color','颜色']]},
+  mistakes:{title:'错题管理',tip:'支持错题收藏、分页查询、修改备注/复习次数、删除。新增前需要先有题目ID。',url:'/api/mistakes',listUrl:'/api/mistakes/page',page:true,id:'id',cols:['id','problemId','memo','reviewCount','createdAt'],fields:[['problemId','题目ID'],['memo','错题备注'],['sessionId','会话ID'],['reviewCount','复习次数']]},
+  knowledge:{title:'知识点管理',tip:'新增业务模块，支持知识点沉淀、掌握程度维护。',url:'/api/knowledge-points',page:true,id:'id',cols:['id','name','subjectType','category','masteryLevel'],fields:[['name','知识点名称'],['subjectType','科目','select',['ACM','MATH','CS408']],['category','分类'],['description','说明'],['masteryLevel','掌握程度']]},
+  plans:{title:'学习计划管理',tip:'新增业务模块，支持计划目标、完成进度和状态维护。',url:'/api/study-plans',page:true,id:'id',cols:['id','title','subjectType','targetCount','finishedCount','status'],fields:[['title','计划标题'],['subjectType','科目','select',['ACM','MATH','CS408']],['content','计划内容'],['targetCount','目标数量'],['finishedCount','完成数量'],['status','状态','select',['TODO','DOING','DONE']]]},
+  notices:{title:'公告管理',tip:'新增业务模块，支持系统公告发布、编辑和删除。',url:'/api/notices',page:true,id:'id',cols:['id','title','type','status','createdAt'],fields:[['title','公告标题'],['content','公告内容'],['type','类型','select',['SYSTEM','COURSE','EXAM']],['status','状态','select',['PUBLISHED','DRAFT']]]},
+  sessions:{title:'会话记录管理',tip:'支持新建会话、查询会话、修改标题、删除和清空。',url:'/api/chat/sessions',page:false,id:'sessionId',cols:['sessionId','title','createdAt','messageCount'],fields:[['title','会话标题']]}
+};
+let current='users';let editingId=null;let cache=[];
+function tokenValue(){return document.getElementById('token').value.trim()}
+function headers(){return {'Content-Type':'application/json','Authorization':'Bearer '+tokenValue()}}
+function showLog(x){document.getElementById('log').textContent=typeof x==='string'?x:JSON.stringify(x,null,2)}
+async function req(url,opt={}){const r=await fetch(url,opt);const d=await r.json().catch(()=>({code:r.status,message:r.statusText}));showLog(d);return d}
+async function register(){const d=await req('/api/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:username.value,password:password.value,nickname:username.value})});if(d.token)token.value=d.token}
+async function login(){const d=await req('/api/auth/web-login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:username.value,password:password.value})});if(d.token)token.value=d.token}
+async function guest(){const d=await req('/api/auth/guest',{method:'POST'});if(d.token)token.value=d.token}
+function initTabs(){const box=document.getElementById('tabs');box.innerHTML=Object.keys(modules).map((k,i)=>`<button class="${i===0?'active':''}" onclick="switchModule('${k}',this)">${modules[k].title}</button>`).join(' ');renderForm()}
+function switchModule(k,btn){current=k;editingId=null;document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderForm();loadRecords()}
+function renderForm(){const m=modules[current];document.getElementById('moduleTitle').innerText=m.title;document.getElementById('moduleTip').innerText=m.tip;document.getElementById('formArea').innerHTML=m.fields.map(f=>fieldHtml(f)).join('');document.getElementById('tableArea').innerHTML=''}
+function fieldHtml(f){const [name,label,type,opts]=f;if(type==='select')return `<label>${label}<select id="f_${name}">${opts.map(o=>`<option>${o}</option>`).join('')}</select></label>`;return `<label>${label}<input id="f_${name}" placeholder="${label}" /></label>`}
+function formData(){const obj={};for(const f of modules[current].fields){const el=document.getElementById('f_'+f[0]);if(!el)continue;let v=el.value;if(v==='')continue;if(['targetCount','finishedCount','reviewCount','masteryLevel','problemId'].includes(f[0]))v=Number(v);obj[f[0]]=v}return obj}
+function fillForm(row){editingId=row[modules[current].id];for(const f of modules[current].fields){const el=document.getElementById('f_'+f[0]);if(el)el.value=row[f[0]]??''}showLog('正在编辑：'+editingId)}
+function resetForm(){editingId=null;for(const f of modules[current].fields){const el=document.getElementById('f_'+f[0]);if(el)el.value=''}showLog('表单已清空')}
+async function saveRecord(){const m=modules[current];let data=formData();if(current==='sessions'&&!editingId){const d=await req(m.url,{method:'POST',headers:headers()});loadRecords();return d}const url=editingId?m.url+'/'+editingId:m.url;const method=editingId?'PUT':'POST';await req(url,{method,headers:headers(),body:JSON.stringify(data)});editingId=null;loadRecords()}
+async function loadRecords(){const m=modules[current];const url=m.page?(m.listUrl||m.url)+'?page=1&size=10':m.url;const d=await req(url,{headers:headers()});let rows=d.data;if(rows&&rows.content)rows=rows.content;if(!Array.isArray(rows))rows=[];cache=rows;renderTable(rows)}
+function renderTable(rows){const m=modules[current];let html='<table><thead><tr>'+m.cols.map(c=>`<th>${c}</th>`).join('')+'<th>操作</th></tr></thead><tbody>';html+=rows.map((r,i)=>'<tr>'+m.cols.map(c=>`<td>${esc(String(r[c]??'').slice(0,80))}</td>`).join('')+`<td class="actions"><button onclick="editRow(${i})">编辑</button><button class="danger" onclick="removeRow('${r[m.id]}')">删除</button></td></tr>`).join('');html+='</tbody></table>';document.getElementById('tableArea').innerHTML=html}
+function editRow(i){fillForm(cache[i])}
+async function removeRow(id){if(!confirm('确认删除？'))return;await req(modules[current].url+'/'+id,{method:'DELETE',headers:headers()});loadRecords()}
+function esc(s){return s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+initTabs();
+</script>
+</body>
+</html>
