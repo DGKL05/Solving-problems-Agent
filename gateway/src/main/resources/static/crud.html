@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CRUD 管理演示 - AgentDome</title>
+  <style>
+    body { margin: 0; font-family: Arial, "Microsoft YaHei", sans-serif; background: #f5f7fb; color: #222; }
+    header { background: #2f6feb; color: #fff; padding: 18px 28px; }
+    header h1 { margin: 0; font-size: 24px; }
+    main { max-width: 1180px; margin: 24px auto; padding: 0 16px; }
+    .card { background: #fff; border-radius: 12px; padding: 18px; margin-bottom: 18px; box-shadow: 0 6px 18px rgba(0,0,0,.06); }
+    .row { display: flex; flex-wrap: wrap; gap: 10px; margin: 10px 0; }
+    input, select, textarea { padding: 9px 10px; border: 1px solid #dcdfe6; border-radius: 8px; min-width: 180px; }
+    textarea { width: 100%; min-height: 70px; }
+    button { border: 0; border-radius: 8px; padding: 9px 14px; background: #2f6feb; color: #fff; cursor: pointer; }
+    button.danger { background: #d93025; }
+    button.gray { background: #606266; }
+    button:hover { opacity: .9; }
+    table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 14px; }
+    th, td { border-bottom: 1px solid #ebeef5; padding: 10px; text-align: left; vertical-align: top; }
+    th { background: #f8f9fb; }
+    .tabs button { background: #e8eefc; color: #2451a6; margin-right: 8px; }
+    .tabs button.active { background: #2f6feb; color: #fff; }
+    .hidden { display: none; }
+    .tip { color: #666; font-size: 13px; }
+    pre { background: #1f2937; color: #d1d5db; padding: 12px; border-radius: 8px; overflow: auto; }
+  </style>
+</head>
+<body>
+<header>
+  <h1>AI 智能刷题与错题管理系统 - CRUD 演示页</h1>
+  <div class="tip" style="color:#eaf1ff">用于课程设计演示：用户、题目、标签、错题、会话记录管理</div>
+</header>
+<main>
+  <section class="card">
+    <h2>1. 登录获取 Token</h2>
+    <div class="row">
+      <input id="username" placeholder="用户名" value="test" />
+      <input id="password" placeholder="密码" type="password" value="123456" />
+      <button onclick="register()">注册</button>
+      <button onclick="login()">登录</button>
+      <button class="gray" onclick="guest()">游客登录</button>
+    </div>
+    <textarea id="token" placeholder="登录后 Token 会显示在这里，也可以手动粘贴"></textarea>
+  </section>
+
+  <section class="card tabs">
+    <button class="active" onclick="showTab('users', this)">用户管理</button>
+    <button onclick="showTab('problems', this)">题目管理</button>
+    <button onclick="showTab('tags', this)">标签管理</button>
+    <button onclick="showTab('mistakes', this)">错题管理</button>
+    <button onclick="showTab('sessions', this)">会话管理</button>
+  </section>
+
+  <section id="users" class="card panel">
+    <h2>用户管理 CRUD</h2>
+    <div class="row">
+      <input id="newUser" placeholder="用户名" />
+      <input id="newUserPwd" placeholder="密码" value="123456" />
+      <input id="newUserNick" placeholder="昵称" />
+      <select id="newUserRole"><option>USER</option><option>ADMIN</option></select>
+      <button onclick="createUser()">新增用户</button>
+      <button onclick="loadUsers()">查询用户</button>
+    </div>
+    <div id="usersResult"></div>
+  </section>
+
+  <section id="problems" class="card panel hidden">
+    <h2>题目管理 CRUD</h2>
+    <div class="row">
+      <select id="problemType"><option>ACM</option><option>MATH</option><option>CS408</option></select>
+      <input id="problemText" placeholder="题目内容" />
+      <input id="solutionText" placeholder="解答内容" />
+      <button onclick="createProblem()">新增题目</button>
+      <button onclick="loadProblems()">查询题目</button>
+    </div>
+    <div id="problemsResult"></div>
+  </section>
+
+  <section id="tags" class="card panel hidden">
+    <h2>标签管理 CRUD</h2>
+    <div class="row">
+      <input id="tagName" placeholder="标签名称" />
+      <input id="tagColor" placeholder="颜色，如 #4A90D9" value="#4A90D9" />
+      <button onclick="createTag()">新增标签</button>
+      <button onclick="loadTags()">查询标签</button>
+    </div>
+    <div id="tagsResult"></div>
+  </section>
+
+  <section id="mistakes" class="card panel hidden">
+    <h2>错题管理 CRUD</h2>
+    <div class="row">
+      <input id="mistakeProblemId" placeholder="题目ID problemId" />
+      <input id="mistakeMemo" placeholder="错题备注" />
+      <button onclick="createMistake()">新增错题</button>
+      <button onclick="loadMistakes()">查询错题</button>
+      <button class="danger" onclick="clearMistakes()">清空错题</button>
+    </div>
+    <div id="mistakesResult"></div>
+  </section>
+
+  <section id="sessions" class="card panel hidden">
+    <h2>会话记录 CRUD</h2>
+    <div class="row">
+      <button onclick="createSession()">新增会话</button>
+      <button onclick="loadSessions()">查询会话</button>
+      <button class="danger" onclick="clearSessions()">清空会话</button>
+    </div>
+    <div id="sessionsResult"></div>
+  </section>
+
+  <section class="card">
+    <h2>接口返回</h2>
+    <pre id="log">等待操作...</pre>
+  </section>
+</main>
+
+<script>
+const api = '';
+function getToken(){ return document.getElementById('token').value.trim(); }
+function authHeaders(){ return { 'Content-Type':'application/json', 'Authorization':'Bearer ' + getToken() }; }
+function log(data){ document.getElementById('log').textContent = typeof data === 'string' ? data : JSON.stringify(data, null, 2); }
+async function request(url, options={}){
+  const res = await fetch(api + url, options);
+  const data = await res.json().catch(() => ({}));
+  log(data);
+  return data;
+}
+function showTab(id, btn){
+  document.querySelectorAll('.panel').forEach(p => p.classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+  document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+async function register(){
+  const data = await request('/api/auth/register', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username:username.value,password:password.value,nickname:username.value})});
+  if(data.token) token.value = data.token;
+}
+async function login(){
+  const data = await request('/api/auth/web-login', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username:username.value,password:password.value})});
+  if(data.token) token.value = data.token;
+}
+async function guest(){
+  const data = await request('/api/auth/guest', {method:'POST'});
+  if(data.token) token.value = data.token;
+}
+async function createUser(){ await request('/api/users', {method:'POST', headers:authHeaders(), body:JSON.stringify({username:newUser.value,password:newUserPwd.value,nickname:newUserNick.value,role:newUserRole.value})}); loadUsers(); }
+async function loadUsers(){ const data = await request('/api/users?page=1&size=10', {headers:authHeaders()}); renderTable('usersResult', data.data && data.data.content, ['id','username','nickname','role','createdAt'], deleteUser); }
+async function deleteUser(id){ await request('/api/users/'+id, {method:'DELETE', headers:authHeaders()}); loadUsers(); }
+async function createProblem(){ await request('/api/problems', {method:'POST', headers:authHeaders(), body:JSON.stringify({subjectType:problemType.value,cleanedText:problemText.value,solutionText:solutionText.value})}); loadProblems(); }
+async function loadProblems(){ const data = await request('/api/problems?page=1&size=10', {headers:authHeaders()}); renderTable('problemsResult', data.data && data.data.content, ['id','subjectType','cleanedText','solutionText','createdAt'], deleteProblem); }
+async function deleteProblem(id){ await request('/api/problems/'+id, {method:'DELETE', headers:authHeaders()}); loadProblems(); }
+async function createTag(){ await request('/api/tags', {method:'POST', headers:authHeaders(), body:JSON.stringify({name:tagName.value,color:tagColor.value})}); loadTags(); }
+async function loadTags(){ const data = await request('/api/tags', {headers:authHeaders()}); renderTable('tagsResult', data.data, ['id','name','color'], deleteTag); }
+async function deleteTag(id){ await request('/api/tags/'+id, {method:'DELETE', headers:authHeaders()}); loadTags(); }
+async function createMistake(){ await request('/api/mistakes', {method:'POST', headers:authHeaders(), body:JSON.stringify({problemId:mistakeProblemId.value,memo:mistakeMemo.value})}); loadMistakes(); }
+async function loadMistakes(){ const data = await request('/api/mistakes/page?page=1&size=10', {headers:authHeaders()}); renderTable('mistakesResult', data.data && data.data.content, ['id','problemId','memo','reviewCount','createdAt'], deleteMistake); }
+async function deleteMistake(id){ await request('/api/mistakes/'+id, {method:'DELETE', headers:authHeaders()}); loadMistakes(); }
+async function clearMistakes(){ await request('/api/mistakes', {method:'DELETE', headers:authHeaders()}); loadMistakes(); }
+async function createSession(){ await request('/api/chat/sessions', {method:'POST', headers:authHeaders()}); loadSessions(); }
+async function loadSessions(){ const data = await request('/api/chat/sessions', {headers:authHeaders()}); renderTable('sessionsResult', data.data, ['sessionId','title','createdAt','messageCount'], deleteSession, 'sessionId'); }
+async function deleteSession(id){ await request('/api/chat/sessions/'+id, {method:'DELETE', headers:authHeaders()}); loadSessions(); }
+async function clearSessions(){ await request('/api/chat/sessions', {method:'DELETE', headers:authHeaders()}); loadSessions(); }
+function renderTable(el, rows, fields, delFn, idField='id'){
+  rows = rows || [];
+  let html = '<table><thead><tr>' + fields.map(f=>'<th>'+f+'</th>').join('') + '<th>操作</th></tr></thead><tbody>';
+  html += rows.map(r => '<tr>' + fields.map(f => '<td>' + escapeHtml(String(r[f] ?? '').slice(0,80)) + '</td>').join('') + '<td><button class="danger" onclick="('+delFn.name+')(`'+r[idField]+'`)">删除</button></td></tr>').join('');
+  html += '</tbody></table>';
+  document.getElementById(el).innerHTML = html;
+}
+function escapeHtml(s){ return s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+</script>
+</body>
+</html>
