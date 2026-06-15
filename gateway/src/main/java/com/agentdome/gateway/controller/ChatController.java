@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 @RestController
@@ -32,11 +33,11 @@ public class ChatController {
         // OCR extract text
         PipelineResult result = pipelineService.process(file, userId);
 
-        Map<String, Object> data = Map.of(
-                "imageId", result.imageId(),
-                "cleanedText", result.cleanedText(),
-                "subjectType", subjectType
-        );
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("imageId", result.imageId());
+        data.put("cleanedText", result.cleanedText());
+        data.put("subjectType", subjectType);
+        data.put("sessionId", sessionId);
 
         return ResponseEntity.ok(ApiResponse.ok(data));
     }
