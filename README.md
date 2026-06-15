@@ -1,162 +1,169 @@
 <div align="center">
 
-# 📸 Solving-problems-Agent
+# AI 智能刷题与错题管理系统
 
-### 一个面向学习场景的 AI 拍照解题助手
+### 基于 Spring Boot 的 Web 课程设计项目
 
-把题目拍下来，交给 Agent 自动完成 **图片识别 → 题目清洗 → 智能解答 → 错题沉淀 → 复习推荐**。
-
-<p>
-  <img src="https://img.shields.io/badge/Java-17-orange?style=flat-square" />
-  <img src="https://img.shields.io/badge/Spring%20Boot-3.3.0-brightgreen?style=flat-square" />
-  <img src="https://img.shields.io/badge/Maven-Multi--Module-blue?style=flat-square" />
-  <img src="https://img.shields.io/badge/LangChain4j-Agent-purple?style=flat-square" />
-  <img src="https://img.shields.io/badge/Qwen--Max-DashScope-1677ff?style=flat-square" />
-  <img src="https://img.shields.io/badge/WeChat-Mini%20Program-07c160?style=flat-square" />
-</p>
+面向学习场景的 AI 解题系统，支持 **用户登录、图片识题、AI 解题、错题管理、标签管理、会话记录、Redis 会话缓存** 等功能。
 
 </div>
 
 ---
 
-## ✨ 项目简介
+## 项目简介
 
-**Solving-problems-Agent / AgentDome** 是一个基于 Spring Boot 和大模型能力构建的 AI 解题系统，主要面向算法竞赛、数学学习、考研 408 等学习场景。
+本项目原名 `Solving-problems-Agent / AgentDome`，现整理为适合《软件框架技术》课程设计提交的 Spring Boot Web 项目。
 
-项目采用 **Maven 多模块架构**，后端负责用户认证、图片处理、OCR 识别、Agent 解题、错题集管理和聊天历史沉淀；前端采用微信小程序，提供聊天、错题集和个人中心等页面。
+系统围绕“刷题学习”场景设计，用户可以通过 Web 页面登录系统，上传题目图片或输入题目内容，系统调用 OCR 与大模型能力进行题目解析和智能解答，并支持将题目加入错题集、维护错题标签、保存历史会话，形成完整的学习闭环。
 
-核心目标不是简单地“调用大模型回答问题”，而是把学习过程拆成完整闭环：
+核心流程：
 
-> 拍照上传 → OCR 识别 → 文本清洗 → Agent 解题 → 错题收藏 → 历史会话 → 后续复习
-
----
-
-## 🚀 核心功能
-
-### 📷 拍照识题
-
-- 支持微信小程序上传题目图片
-- 后端接收 Multipart 文件
-- 图片存储到 MongoDB GridFS
-- 调用 Qwen-VL-OCR 提取图片中的题目文本
-- 对 OCR 文本进行清洗，减少识别噪声
-
-### 🧠 AI 智能解题
-
-- 接入阿里云 DashScope / Qwen-Max
-- 支持同步回答和流式输出
-- 根据题目类型自动构造 Prompt
-- 当前支持：
-  - ACM / 算法竞赛题
-  - 数学题
-  - 通用题目问答
-
-### 🧩 Agent 工具调用
-
-Agent 不只是聊天，还可以根据用户意图调用不同工具：
-
-- 解题工具：生成思路、算法分析、代码和复杂度
-- 错题工具：加入错题、查询错题、删除错题、清空错题
-- 推荐工具：推荐相似题目
-- 概念解释工具：解释知识点和核心概念
-- 聊天记录工具：查询、删除、清空历史会话
-
-### 📚 错题集管理
-
-- 支持把最近解答过的题加入错题本
-- 支持查询错题列表
-- 支持查看指定错题详情
-- 支持删除指定错题
-- 为后续个性化复习和相似题推荐做数据沉淀
-
-### 💬 会话记忆
-
-- 使用 Redis 管理短期会话上下文
-- 使用 MongoDB 保存聊天历史
-- 支持创建新会话、查看会话列表、查看会话详情、删除会话
-- 支持跨会话学习摘要，为后续个性化解题做准备
-
-### 👤 用户认证
-
-- 微信小程序登录
-- 游客登录
-- Web 注册 / 登录
-- JWT Token 鉴权
-
----
-
-## 🏗️ 系统架构
-
-```mermaid
-flowchart LR
-    A[微信小程序] --> B[Gateway API]
-    B --> C[Image Pipeline]
-    B --> D[Agent Core]
-    B --> E[Mistake Service]
-    B --> F[User Service]
-
-    C --> G[MongoDB GridFS]
-    C --> H[Qwen VL OCR]
-    D --> I[Qwen Max]
-    D --> J[Redis Memory]
-    D --> K[MongoDB Chat Log]
-    E --> L[MySQL]
-    F --> L
-
-    H --> C
-    I --> D
+```text
+用户登录 -> 上传题目/输入题目 -> OCR 识别 -> AI 解题 -> 错题收藏 -> 标签管理 -> 会话沉淀
 ```
 
+> 本仓库已移除微信小程序端，当前保留 Spring Boot 后端与 Web 静态页面，便于课程设计演示和提交。
+
 ---
 
-## 📦 模块说明
+## 课程设计匹配点
+
+| 课程要求 | 项目对应实现 |
+|---|---|
+| Spring Boot 应用系统 | 使用 Spring Boot 3.3.0 构建后端服务 |
+| 数据持久化 | 使用 Spring Data JPA + MySQL 管理用户、题目、错题、标签数据 |
+| 前端页面展示 | 使用 `gateway/src/main/resources/static/index.html` 作为 Web 演示页面 |
+| 用户认证与安全 | 支持 Web 注册、登录、游客登录、JWT Token 鉴权、接口拦截 |
+| 缓存管理 | 使用 Redis 缓存会话上下文数据，设置 24 小时过期时间 |
+| 功能模块 | 用户认证、AI 解题、图片上传、错题管理、标签管理、聊天记录管理 |
+| 数据库脚本 | `sql/agent_dome.sql` 提供 MySQL 初始化脚本 |
+| 本地部署 | `docker-compose.yml` 一键启动 MySQL、Redis、MongoDB |
+
+---
+
+## 核心功能
+
+### 1. 用户认证模块
+
+- Web 用户注册
+- Web 用户登录
+- 游客登录
+- JWT Token 生成与校验
+- 未登录接口拦截
+- 登录频率限制，防止频繁请求
+
+### 2. AI 解题模块
+
+- 支持文本题目解答
+- 支持 WebSocket 流式输出
+- 支持 ACM、数学、408 等题型扩展
+- 支持调用 Qwen / DashScope 大模型
+- 支持在无模型配置时保留基础系统流程演示
+
+### 3. 图片识题模块
+
+- 支持 Multipart 图片上传
+- 支持 OCR 识别题目文本
+- 支持清洗 OCR 噪声文本
+- 图片信息可存储到 MongoDB / GridFS
+
+### 4. 错题管理模块
+
+- 添加错题
+- 查询错题列表
+- 查看错题内容
+- 删除错题
+- 清空错题
+- 记录错题备注、错误类型和复习次数
+
+### 5. 标签管理模块
+
+- 创建标签
+- 查询用户标签
+- 删除标签
+- 题目与标签关联
+- 支持按照标签扩展错题筛选
+
+### 6. 会话记录模块
+
+- 创建新会话
+- 保存用户与 AI 的对话记录
+- 查询会话列表
+- 删除指定会话
+- 清空全部会话
+- Redis 保存短期上下文，MongoDB 保存长期聊天记录
+
+---
+
+## 技术栈
+
+### 后端技术
+
+| 技术 | 说明 |
+|---|---|
+| Java 17 | 后端开发语言 |
+| Spring Boot 3.3.0 | 项目基础框架 |
+| Spring MVC | REST 接口开发 |
+| Spring Data JPA | MySQL 数据访问 |
+| MySQL 8 | 结构化业务数据存储 |
+| Redis 7 | 会话上下文缓存 |
+| MongoDB 7 | 图片、聊天记录、历史摘要存储 |
+| JWT | 登录认证与接口鉴权 |
+| WebSocket | AI 解题流式输出 |
+| Maven Multi-Module | 多模块工程管理 |
+| LangChain4j / DashScope | 大模型能力集成 |
+
+### 前端技术
+
+| 技术 | 说明 |
+|---|---|
+| HTML / CSS / JavaScript | Web 演示页面 |
+| Fetch API | 调用后端 REST 接口 |
+| WebSocket | 接收 AI 流式输出 |
+
+---
+
+## 项目结构
 
 ```text
 Solving-problems-Agent
-├── common             # 公共实体、Repository、配置、异常、JWT 工具
-├── user-service       # 用户登录、微信认证、用户信息管理
-├── image-pipeline     # 图片上传、GridFS 存储、OCR 识别、文本清洗
-├── mistake-service    # 错题集、标签、错题查询与删除
-├── agent-core         # Agent 编排、Qwen 调用、工具路由、会话记忆
-├── gateway            # HTTP API、鉴权入口、Controller、启动类
-├── miniprogram        # 微信小程序端：聊天、错题集、个人中心
-├── docs               # 项目计划与开发文档
-├── docker-compose.yml # MySQL、Redis、MongoDB 本地开发环境
-└── pom.xml            # Maven 父工程
+├── common                         # 公共实体、Repository、异常、JWT 工具、配置
+│   └── src/main/java/com/agentdome/common
+├── user-service                   # 用户登录、微信认证、用户业务服务
+├── image-pipeline                 # 图片上传、OCR 识别、文本清洗
+├── mistake-service                # 错题集、标签、错题查询与删除
+├── agent-core                     # Agent 编排、Qwen 调用、工具路由、会话记忆
+├── gateway                        # Web 入口、Controller、WebSocket、静态页面
+│   └── src/main/resources/static/index.html
+├── sql                            # MySQL 初始化脚本
+│   └── agent_dome.sql
+├── docker-compose.yml             # MySQL、Redis、MongoDB 本地环境
+└── pom.xml                        # Maven 父工程
 ```
 
 ---
 
-## 🛠️ 技术栈
+## 数据库设计
 
-### 后端
+项目主要包含以下 MySQL 表：
 
-| 技术 | 作用 |
+| 表名 | 说明 |
 |---|---|
-| Java 17 | 后端主要开发语言 |
-| Spring Boot 3.3.0 | Web 服务与应用启动 |
-| Maven Multi-Module | 多模块项目管理 |
-| Spring Web / WebSocket | REST API 与实时交互扩展 |
-| Spring Data JPA | MySQL 数据访问 |
-| Spring Security + JWT | 登录认证与接口鉴权 |
-| LangChain4j | Agent 能力集成基础 |
-| DashScope SDK | Qwen-Max 大模型调用 |
-| Qwen-VL-OCR | 图片文字识别 |
-| MySQL 8 | 用户、题目、错题等结构化数据 |
-| Redis 7 | 会话短期记忆 |
-| MongoDB 7 | 图片、聊天记录、历史摘要 |
+| users | 用户信息表 |
+| problems | 题目记录表 |
+| mistake_collections | 错题收藏表 |
+| tags | 标签表 |
+| problem_tags | 题目标签关联表 |
 
-### 前端
+数据库初始化脚本位置：
 
-| 技术 | 作用 |
-|---|---|
-| 微信小程序原生开发 | 移动端交互入口 |
-| WXML / WXSS / JS | 页面结构、样式和逻辑 |
-| wx.request / wx.uploadFile | 接口调用和图片上传 |
+```text
+sql/agent_dome.sql
+```
 
 ---
 
-## ⚙️ 本地启动
+## 本地启动
 
 ### 1. 克隆项目
 
@@ -167,43 +174,34 @@ cd Solving-problems-Agent
 
 ### 2. 启动基础环境
 
-项目提供了 `docker-compose.yml`，可以一键启动 MySQL、Redis、MongoDB：
-
 ```bash
 docker compose up -d
 ```
 
-默认启动端口：
+默认启动服务：
 
-| 服务 | 端口 | 说明 |
+| 服务 | 端口 | 默认信息 |
 |---|---:|---|
-| MySQL | 3306 | 默认数据库 `agent_dome` |
-| Redis | 6379 | 会话记忆 |
-| MongoDB | 27017 | 图片与聊天记录 |
+| MySQL | 3306 | 数据库：`agent_dome`，root 密码：`root` |
+| Redis | 6379 | 密码：`redis123` |
+| MongoDB | 27017 | 用户：`admin`，密码：`admin123` |
 
-### 3. 配置环境变量
+### 3. 配置可选环境变量
 
-#### Windows PowerShell
+Windows PowerShell：
 
 ```powershell
 $env:MYSQL_HOST="localhost"
 $env:MYSQL_USER="root"
 $env:MYSQL_PASSWORD="root"
+$env:REDIS_PASSWORD="redis123"
+$env:MONGO_ROOT_USER="admin"
+$env:MONGO_ROOT_PASSWORD="admin123"
 $env:DASHSCOPE_API_KEY="你的 DashScope API Key"
-$env:JWT_SECRET="please-change-this-secret-to-a-long-random-string"
+$env:JWT_SECRET="please-change-this-secret-to-a-long-random-string-32bit"
 ```
 
-#### macOS / Linux
-
-```bash
-export MYSQL_HOST=localhost
-export MYSQL_USER=root
-export MYSQL_PASSWORD=root
-export DASHSCOPE_API_KEY="你的 DashScope API Key"
-export JWT_SECRET="please-change-this-secret-to-a-long-random-string"
-```
-
-> 注意：`docker-compose.yml` 中 MySQL root 密码默认为 `root`，所以本地启动时建议显式设置 `MYSQL_PASSWORD=root`。
+没有配置 `DASHSCOPE_API_KEY` 时，部分 AI 调用能力可能不可用，但基础项目结构、登录、数据库和页面仍可用于课程设计展示。
 
 ### 4. 编译项目
 
@@ -211,13 +209,19 @@ export JWT_SECRET="please-change-this-secret-to-a-long-random-string"
 mvn clean package -DskipTests
 ```
 
-### 5. 启动后端网关
+### 5. 启动后端
 
 ```bash
 mvn -pl gateway spring-boot:run
 ```
 
-启动成功后访问：
+### 6. 访问 Web 页面
+
+```text
+http://localhost:8080/
+```
+
+健康检查接口：
 
 ```text
 GET http://localhost:8080/api/health
@@ -235,166 +239,77 @@ GET http://localhost:8080/api/health
 
 ---
 
-## 📱 启动微信小程序
-
-1. 打开微信开发者工具
-2. 导入 `miniprogram/` 目录
-3. 确认 `miniprogram/app.js` 中的后端地址：
-
-```js
-baseUrl: 'http://localhost:8080'
-```
-
-4. 启动后端服务
-5. 在小程序中进入聊天页，上传题目图片进行测试
-
----
-
-## 🔌 主要接口
-
-### 健康检查
-
-```http
-GET /api/health
-```
+## 主要接口
 
 ### 用户认证
 
 ```http
-POST /api/auth/login       # 微信登录
-POST /api/auth/guest       # 游客登录
-POST /api/auth/register    # Web 注册
-POST /api/auth/web-login   # Web 登录
+POST /api/auth/register
+POST /api/auth/web-login
+POST /api/auth/guest
 ```
 
-### 拍照上传
+### 图片上传
 
 ```http
 POST /api/chat/upload
 Content-Type: multipart/form-data
 ```
 
-参数：
+### WebSocket 解题
 
-| 参数 | 类型 | 说明 |
-|---|---|---|
-| file | File | 题目图片 |
-| subjectType | String | 题目类型，例如 ACM / MATH |
-| sessionId | String | 当前会话 ID |
-
-返回示例：
-
-```json
-{
-  "code": 0,
-  "data": {
-    "imageId": "665f...",
-    "cleanedText": "题目识别后的文本",
-    "subjectType": "ACM"
-  },
-  "message": "success"
-}
+```text
+ws://localhost:8080/ws/chat?token=你的JWT
 ```
 
-### 聊天会话
-
-```http
-POST   /api/chat/sessions
-GET    /api/chat/sessions
-GET    /api/chat/sessions/{sessionId}
-DELETE /api/chat/sessions/{sessionId}
-```
-
-### 错题集
+### 错题管理
 
 ```http
 GET    /api/mistakes
 DELETE /api/mistakes/{id}
 ```
 
-### 题目详情
+### 系统健康检查
 
 ```http
-GET /api/problems/{id}
+GET /api/health
 ```
 
 ---
 
-## 🧪 快速测试流程
+## 课程演示建议
 
-1. 启动 Docker 基础环境
-2. 配置 `DASHSCOPE_API_KEY`
-3. 启动 `gateway` 模块
-4. 调用 `/api/auth/guest` 获取 Token
-5. 调用 `/api/chat/sessions` 创建会话
-6. 使用 `/api/chat/upload` 上传题目图片
-7. 查看返回的 `cleanedText`
-8. 在小程序端继续进行解题、错题集和会话管理测试
+建议答辩演示顺序：
 
----
-
-## 🧠 Prompt 能力设计
-
-当前 Agent 会根据 `subjectType` 构造不同提示词：
-
-### ACM 模式
-
-- 分析题目类型
-- 识别算法方向
-- 给出解题思路
-- 输出 C++ 代码
-- 分析时间复杂度和空间复杂度
-
-### MATH 模式
-
-- 判断数学概念
-- 给出分步推导
-- 解释每一步原理
-- 使用 `\boxed{}` 标注最终答案
+```text
+1. docker compose up -d 启动 MySQL、Redis、MongoDB
+2. 启动 gateway 模块
+3. 访问 http://localhost:8080/
+4. 注册或游客登录，获取 JWT
+5. 上传题目图片或输入题目文本
+6. 展示 AI 解题返回
+7. 将题目加入错题集
+8. 查询错题记录
+9. 展示 Redis、MySQL、MongoDB 在系统中的作用
+```
 
 ---
 
-## 🗺️ Roadmap
+## 项目亮点
 
-- [x] Maven 多模块项目骨架
-- [x] Gateway 统一入口
-- [x] JWT 用户认证
-- [x] 微信小程序基础页面
-- [x] 图片上传与 OCR 识别
-- [x] Qwen-Max 智能解题
-- [x] 聊天历史保存
-- [x] 错题集查询与删除
-- [ ] 图片上传后自动进入完整解题链路
-- [ ] 增加 408 专项 Prompt：数据结构、计组、操作系统、计网
-- [ ] 增加错题标签自动生成
-- [ ] 增加相似题推荐算法
-- [ ] 增加后台管理页面
-- [ ] 增加接口文档 Swagger / Knife4j
-- [ ] 增加 Dockerfile 与一键部署脚本
+- 选题区别于图书、学生、教师等常见管理系统，原创性更强。
+- 采用 Spring Boot 多模块结构，分层清晰，职责明确。
+- 覆盖课程要求的安全、数据、前端、缓存四类核心技术。
+- 使用 MySQL 管理结构化数据，Redis 管理短期会话缓存，MongoDB 管理聊天记录和图片数据。
+- 结合 AI 解题、OCR 识别和错题沉淀，体现一定创新性。
 
 ---
 
-## 📌 项目亮点
+## 后续可优化方向
 
-- **不是简单 ChatBot**：围绕学习场景设计了 OCR、Agent、错题、会话记忆的完整闭环。
-- **多模块后端架构**：按用户、图片、Agent、错题、网关进行职责拆分，便于后续扩展。
-- **真实大模型接入**：使用 Qwen-Max 进行题目解答，使用 Qwen-VL-OCR 进行图片识别。
-- **适合简历展示**：覆盖 Spring Boot、JWT、MySQL、Redis、MongoDB、AI Agent、微信小程序等多个技术点。
-- **可继续工程化**：后续可以扩展 RAG、Tool Calling、题库推荐、学习画像和部署流水线。
-
----
-
-## 👨‍💻 作者
-
-**DGKL05**
-
-- GitHub: [@DGKL05](https://github.com/DGKL05)
-- Project: [Solving-problems-Agent](https://github.com/DGKL05/Solving-problems-Agent)
-
----
-
-<div align="center">
-
-如果这个项目对你有帮助，欢迎 Star ⭐
-
-</div>
+- 补充错题分页查询接口
+- 补充标签修改接口
+- 增加管理员角色和后台管理页面
+- 增加 Swagger / Knife4j 接口文档
+- 增加单元测试和接口测试用例
+- 增加 AI Mock 模式，提升无网络环境下的演示稳定性
