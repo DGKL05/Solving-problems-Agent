@@ -41,6 +41,7 @@ public class AuthController {
             User newUser = new User();
             newUser.setOpenid(guestOpenid);
             newUser.setNickname("游客" + guestOpenid.substring(6));
+            newUser.setRole("USER");
             return userRepository.save(newUser);
         });
         String token = jwtUtil.generateToken(user.getId());
@@ -66,6 +67,7 @@ public class AuthController {
         user.setUsername(username);
         user.setPassword(passwordEncoder.encode(password));
         user.setNickname(nickname);
+        user.setRole("USER");
         userRepository.save(user);
 
         String token = jwtUtil.generateToken(user.getId());
