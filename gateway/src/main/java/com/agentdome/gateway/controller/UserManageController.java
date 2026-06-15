@@ -13,6 +13,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -120,7 +121,10 @@ public class UserManageController {
         return userRepository.findById(id)
                 .map(user -> {
                     userRepository.delete(user);
-                    return ResponseEntity.ok(ApiResponse.ok(Map.of("deleted", true, "id", id)));
+                    Map<String, Object> result = new LinkedHashMap<>();
+                    result.put("deleted", true);
+                    result.put("id", id);
+                    return ResponseEntity.ok(ApiResponse.ok(result));
                 })
                 .orElse(ResponseEntity.status(404).body(ApiResponse.error(404, "用户不存在")));
     }
