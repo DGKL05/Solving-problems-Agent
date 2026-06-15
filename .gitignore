@@ -1,5 +1,3 @@
-.worktrees/
-
 # Maven
 target/
 
@@ -17,18 +15,19 @@ Thumbs.db
 
 # Logs
 *.log
+logs/
 
-# Environment
+# Environment / local config
 .env
 .env.local
 application-dev.yml
 application-prod.yml
 
-# Superpowers (brainstorm artifacts)
+# Local worktrees and temporary artifacts
+.worktrees/
 .superpowers/
-
-# Mini program
-miniprogram/images/tab-*.png
-
-# Claude Code local settings (may contain local paths)
 .claude/settings.local.json
+
+# Runtime upload/cache files
+uploads/
+tmp/
