@@ -32,6 +32,12 @@ public class User {
     @Column(name = "avatar_url", length = 255)
     private String avatarUrl;
 
+    /**
+     * 用户角色：ADMIN 管理员，USER 普通用户。
+     */
+    @Column(length = 20, nullable = false)
+    private String role = "USER";
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
@@ -40,6 +46,9 @@ public class User {
 
     @PrePersist
     protected void onCreate() {
+        if (role == null || role.isBlank()) {
+            role = "USER";
+        }
         createdAt = LocalDateTime.now();
         lastActiveAt = LocalDateTime.now();
     }
