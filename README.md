@@ -2,7 +2,7 @@
 
 基于 Spring Boot 的 Web 课程设计项目。
 
-本项目面向学习刷题场景，支持用户登录、图片识题、AI 解题、用户管理、题目管理、标签管理、错题管理、会话记录管理和 Redis 会话缓存等功能。
+本项目面向学习刷题场景，支持用户登录、图片识题、AI 解题、用户管理、题目管理、标签管理、错题管理、知识点管理、学习计划管理、公告管理、会话记录管理和 Redis 会话缓存等功能。
 
 ## 项目定位
 
@@ -11,7 +11,7 @@
 核心流程：
 
 ```text
-用户登录 -> 题目录入/图片识题 -> AI 解题 -> 错题收藏 -> 标签管理 -> 会话记录 -> CRUD 管理
+用户登录 -> 题目录入/图片识题 -> AI 解题 -> 错题收藏 -> 知识点沉淀 -> 学习计划 -> CRUD 管理
 ```
 
 ## 课程设计匹配点
@@ -24,7 +24,7 @@
 | 用户认证 | 注册、登录、游客登录、JWT 鉴权 |
 | 缓存管理 | Redis 会话缓存 |
 | 数据库脚本 | sql/agent_dome.sql |
-| CRUD 模块 | 用户、题目、标签、错题、会话记录 |
+| CRUD 模块 | 用户、题目、标签、错题、会话、知识点、学习计划、公告 |
 
 ## 核心模块
 
@@ -63,6 +63,33 @@
 - 修改错题备注和复习次数
 - 删除错题
 - 清空错题
+
+### 知识点管理
+
+- 分页查询知识点
+- 按科目筛选知识点
+- 新增知识点
+- 查询知识点详情
+- 修改知识点分类、说明和掌握程度
+- 删除知识点
+
+### 学习计划管理
+
+- 分页查询学习计划
+- 按状态筛选学习计划
+- 新增学习计划
+- 查询学习计划详情
+- 修改计划内容、目标数量和完成进度
+- 删除学习计划
+
+### 公告管理
+
+- 分页查询公告
+- 按状态或类型筛选公告
+- 新增公告
+- 查询公告详情
+- 修改公告标题、内容和状态
+- 删除公告
 
 ### 会话记录管理
 
@@ -109,7 +136,8 @@ Solving-problems-Agent
 │       ├── index.html             # AI 解题页面
 │       └── crud.html              # CRUD 管理演示页
 ├── docs
-│   └── CRUD_API.md                # CRUD 接口说明
+│   ├── CRUD_API.md                # CRUD 接口说明
+│   └── EXTENDED_MODULES.md        # 扩展模块说明
 ├── sql
 │   └── agent_dome.sql             # MySQL 初始化脚本
 ├── docker-compose.yml
@@ -137,6 +165,7 @@ http://localhost:8080/crud.html
 
 ```text
 docs/CRUD_API.md
+docs/EXTENDED_MODULES.md
 ```
 
 ### 用户认证
@@ -190,6 +219,36 @@ DELETE /api/mistakes/{id}
 DELETE /api/mistakes
 ```
 
+### 知识点管理 CRUD
+
+```http
+GET    /api/knowledge-points?page=1&size=10
+POST   /api/knowledge-points
+GET    /api/knowledge-points/{id}
+PUT    /api/knowledge-points/{id}
+DELETE /api/knowledge-points/{id}
+```
+
+### 学习计划管理 CRUD
+
+```http
+GET    /api/study-plans?page=1&size=10
+POST   /api/study-plans
+GET    /api/study-plans/{id}
+PUT    /api/study-plans/{id}
+DELETE /api/study-plans/{id}
+```
+
+### 公告管理 CRUD
+
+```http
+GET    /api/notices?page=1&size=10
+POST   /api/notices
+GET    /api/notices/{id}
+PUT    /api/notices/{id}
+DELETE /api/notices/{id}
+```
+
 ### 会话记录 CRUD
 
 ```http
@@ -209,8 +268,9 @@ DELETE /api/chat/sessions
 3. 访问 /crud.html
 4. 注册或游客登录
 5. 演示用户、题目、标签、错题、会话记录 CRUD
-6. 展示 sql/agent_dome.sql 数据库脚本
-7. 展示 Redis 缓存和 MongoDB 会话记录
+6. 使用 Postman 演示知识点、学习计划、公告模块 CRUD
+7. 展示 sql/agent_dome.sql 数据库脚本
+8. 展示 Redis 缓存和 MongoDB 会话记录
 ```
 
 ## 项目亮点
@@ -218,5 +278,5 @@ DELETE /api/chat/sessions
 - 选题区别于图书、学生、教师等常见管理系统。
 - Spring Boot 多模块结构，分层清晰。
 - 已补充多组 CRUD 接口，更符合课程评分标准。
+- 新增知识点、学习计划、公告等独立业务模块，系统更完整。
 - 覆盖安全、数据、前端、缓存四类核心技术。
-- 结合 AI 解题、OCR 识别和错题管理，具有一定创新性。
