@@ -1,26 +1,35 @@
 version: '3.8'
+
 services:
   mysql:
     image: mysql:8.0
+    container_name: agent-dome-mysql
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-change-me-in-production}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
       MYSQL_DATABASE: agent_dome
+      TZ: Asia/Shanghai
     ports:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+      - ./sql/agent_dome.sql:/docker-entrypoint-initdb.d/agent_dome.sql:ro
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
 
   redis:
     image: redis:7-alpine
-    command: redis-server --requirepass ${REDIS_PASSWORD:-change-me-in-production}
+    container_name: agent-dome-redis
+    command: redis-server --requirepass ${REDIS_PASSWORD:-redis123}
     ports:
       - "6379:6379"
 
   mongodb:
     image: mongo:7
+    container_name: agent-dome-mongo
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:-admin}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-change-me-in-production}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-admin123}
       MONGO_INITDB_DATABASE: agent_dome
     ports:
       - "27017:27017"
