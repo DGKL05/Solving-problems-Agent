@@ -33,10 +33,14 @@ public class UserService {
                     newUser.setOpenid(openid);
                     newUser.setNickname(request.getNickname());
                     newUser.setAvatarUrl(request.getAvatarUrl());
+                    newUser.setRole("USER");
                     return userRepository.save(newUser);
                 });
 
         user.setLastActiveAt(LocalDateTime.now());
+        if (user.getRole() == null || user.getRole().isBlank()) {
+            user.setRole("USER");
+        }
         if (request.getNickname() != null) {
             user.setNickname(request.getNickname());
         }
