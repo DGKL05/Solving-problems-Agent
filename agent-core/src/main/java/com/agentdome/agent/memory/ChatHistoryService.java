@@ -63,6 +63,17 @@ public class ChatHistoryService {
         return sessionRepo.findBySessionId(sessionId).orElse(null);
     }
 
+    public ChatSessionDocument updateSessionTitle(String sessionId, Long userId, String title) {
+        ChatSessionDocument doc = sessionRepo.findBySessionId(sessionId).orElse(null);
+        if (doc == null || !doc.getUserId().equals(userId)) {
+            return null;
+        }
+        if (title != null && !title.trim().isEmpty()) {
+            doc.setTitle(title.trim());
+        }
+        return sessionRepo.save(doc);
+    }
+
     public void endSession(String sessionId) {
         sessionRepo.findBySessionId(sessionId).ifPresent(doc -> {
             doc.setEndedAt(Instant.now());
