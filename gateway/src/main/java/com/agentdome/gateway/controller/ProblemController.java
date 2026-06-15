@@ -11,6 +11,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 @RestController
@@ -104,7 +105,10 @@ public class ProblemController {
                 .filter(p -> p.getUserId().equals(userId))
                 .map(p -> {
                     problemRepo.delete(p);
-                    return ResponseEntity.ok(ApiResponse.ok(Map.of("deleted", true, "id", id)));
+                    Map<String, Object> result = new LinkedHashMap<>();
+                    result.put("deleted", true);
+                    result.put("id", id);
+                    return ResponseEntity.ok(ApiResponse.ok(result));
                 })
                 .orElse(ResponseEntity.status(404).body(ApiResponse.error(404, "题目不存在")));
     }
