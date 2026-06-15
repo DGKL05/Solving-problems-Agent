@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>扩展模块 CRUD 演示</title>
+  <style>
+    body { margin: 0; font-family: Arial, "Microsoft YaHei", sans-serif; background: #f5f7fb; color: #222; }
+    header { background: #2f6feb; color: #fff; padding: 18px 28px; }
+    main { max-width: 1200px; margin: 24px auto; padding: 0 16px; }
+    .card { background: #fff; border-radius: 12px; padding: 18px; margin-bottom: 18px; box-shadow: 0 6px 18px rgba(0,0,0,.06); }
+    .row { display: flex; flex-wrap: wrap; gap: 10px; margin: 10px 0; }
+    input, select, textarea { padding: 9px 10px; border: 1px solid #dcdfe6; border-radius: 8px; min-width: 170px; }
+    textarea { width: 100%; min-height: 70px; }
+    button { border: 0; border-radius: 8px; padding: 9px 14px; background: #2f6feb; color: #fff; cursor: pointer; }
+    button.danger { background: #d93025; }
+    button.gray { background: #606266; }
+    table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 14px; }
+    th, td { border-bottom: 1px solid #ebeef5; padding: 10px; text-align: left; }
+    th { background: #f8f9fb; }
+    .tabs button { background: #e8eefc; color: #2451a6; margin-right: 8px; }
+    .tabs button.active { background: #2f6feb; color: #fff; }
+    .hidden { display: none; }
+    .tip { color: #666; font-size: 13px; }
+    pre { background: #1f2937; color: #d1d5db; padding: 12px; border-radius: 8px; overflow: auto; }
+  </style>
+</head>
+<body>
+<header>
+  <h1>扩展模块 CRUD 演示页</h1>
+  <p>用于演示知识点管理、学习计划管理、公告管理三个新增模块。</p>
+</header>
+<main>
+  <section class="card">
+    <h2>登录获取 Token</h2>
+    <div class="row">
+      <input id="username" placeholder="用户名" value="test" />
+      <input id="password" placeholder="密码" type="password" value="123456" />
+      <button onclick="register()">注册</button>
+      <button onclick="login()">登录</button>
+      <button class="gray" onclick="guest()">游客登录</button>
+      <a href="/crud.html">返回基础 CRUD 页面</a>
+    </div>
+    <textarea id="token" placeholder="登录后 Token 会显示在这里，也可以手动粘贴"></textarea>
+  </section>
+
+  <section class="card tabs">
+    <button class="active" onclick="showTab('knowledge', this)">知识点管理</button>
+    <button onclick="showTab('plans', this)">学习计划管理</button>
+    <button onclick="showTab('notices', this)">公告管理</button>
+  </section>
+
+  <section id="knowledge" class="card panel">
+    <h2>知识点管理 CRUD</h2>
+    <div class="row">
+      <input id="kpName" placeholder="知识点名称，如 动态规划" />
+      <select id="kpSubject"><option>ACM</option><option>MATH</option><option>CS408</option></select>
+      <input id="kpCategory" placeholder="分类，如 算法" />
+      <input id="kpDesc" placeholder="知识点说明" />
+      <input id="kpLevel" placeholder="掌握程度 0-5" value="2" />
+      <button onclick="createKnowledge()">新增知识点</button>
+      <button onclick="loadKnowledge()">查询知识点</button>
+    </div>
+    <div id="knowledgeResult"></div>
+  </section>
+
+  <section id="plans" class="card panel hidden">
+    <h2>学习计划管理 CRUD</h2>
+    <div class="row">
+      <input id="planTitle" placeholder="计划标题" />
+      <select id="planSubject"><option>ACM</option><option>MATH</option><option>CS408</option></select>
+      <input id="planContent" placeholder="计划内容" />
+      <input id="planTarget" placeholder="目标数量" value="20" />
+      <input id="planFinished" placeholder="完成数量" value="0" />
+      <select id="planStatus"><option>TODO</option><option>DOING</option><option>DONE</option></select>
+      <button onclick="createPlan()">新增计划</button>
+      <button onclick="loadPlans()">查询计划</button>
+    </div>
+    <div id="plansResult"></div>
+  </section>
+
+  <section id="notices" class="card panel hidden">
+    <h2>公告管理 CRUD</h2>
+    <div class="row">
+      <input id="noticeTitle" placeholder="公告标题" />
+      <input id="noticeContent" placeholder="公告内容" />
+      <select id="noticeType"><option>SYSTEM</option><option>COURSE</option><option>EXAM</option></select>
+      <select id="noticeStatus"><option>PUBLISHED</option><option>DRAFT</option></select>
+      <button onclick="createNotice()">新增公告</button>
+      <button onclick="loadNotices()">查询公告</button>
+    </div>
+    <div id="noticesResult"></div>
+  </section>
+
+  <section class="card">
+    <h2>接口返回</h2>
+    <pre id="log">等待操作...</pre>
+  </section>
+</main>
+
+<script>
+function getToken(){ return document.getElementById('token').value.trim(); }
+function authHeaders(){ return { 'Content-Type':'application/json', 'Authorization':'Bearer ' + getToken() }; }
+function log(data){ document.getElementById('log').textContent = typeof data === 'string' ? data : JSON.stringify(data, null, 2); }
+async function request(url, options={}){
+  const res = await fetch(url, options);
+  const data = await res.json().catch(() => ({}));
+  log(data);
+  return data;
+}
+function showTab(id, btn){
+  document.querySelectorAll('.panel').forEach(p => p.classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+  document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+async function register(){
+  const data = await request('/api/auth/register', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username:username.value,password:password.value,nickname:username.value})});
+  if(data.token) token.value = data.token;
+}
+async function login(){
+  const data = await request('/api/auth/web-login', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username:username.value,password:password.value})});
+  if(data.token) token.value = data.token;
+}
+async function guest(){
+  const data = await request('/api/auth/guest', {method:'POST'});
+  if(data.token) token.value = data.token;
+}
+async function createKnowledge(){
+  await request('/api/knowledge-points', {method:'POST', headers:authHeaders(), body:JSON.stringify({name:kpName.value,subjectType:kpSubject.value,category:kpCategory.value,description:kpDesc.value,masteryLevel:Number(kpLevel.value || 0)})});
+  loadKnowledge();
+}
+async function loadKnowledge(){
+  const data = await request('/api/knowledge-points?page=1&size=10', {headers:authHeaders()});
+  renderTable('knowledgeResult', data.data && data.data.content, ['id','name','subjectType','category','masteryLevel','createdAt'], deleteKnowledge);
+}
+async function deleteKnowledge(id){ await request('/api/knowledge-points/'+id, {method:'DELETE', headers:authHeaders()}); loadKnowledge(); }
+async function createPlan(){
+  await request('/api/study-plans', {method:'POST', headers:authHeaders(), body:JSON.stringify({title:planTitle.value,subjectType:planSubject.value,content:planContent.value,targetCount:Number(planTarget.value || 0),finishedCount:Number(planFinished.value || 0),status:planStatus.value})});
+  loadPlans();
+}
+async function loadPlans(){
+  const data = await request('/api/study-plans?page=1&size=10', {headers:authHeaders()});
+  renderTable('plansResult', data.data && data.data.content, ['id','title','subjectType','targetCount','finishedCount','status'], deletePlan);
+}
+async function deletePlan(id){ await request('/api/study-plans/'+id, {method:'DELETE', headers:authHeaders()}); loadPlans(); }
+async function createNotice(){
+  await request('/api/notices', {method:'POST', headers:authHeaders(), body:JSON.stringify({title:noticeTitle.value,content:noticeContent.value,type:noticeType.value,status:noticeStatus.value})});
+  loadNotices();
+}
+async function loadNotices(){
+  const data = await request('/api/notices?page=1&size=10', {headers:authHeaders()});
+  renderTable('noticesResult', data.data && data.data.content, ['id','title','type','status','createdAt'], deleteNotice);
+}
+async function deleteNotice(id){ await request('/api/notices/'+id, {method:'DELETE', headers:authHeaders()}); loadNotices(); }
+function renderTable(el, rows, fields, delFn){
+  rows = rows || [];
+  let html = '<table><thead><tr>' + fields.map(f=>'<th>'+f+'</th>').join('') + '<th>操作</th></tr></thead><tbody>';
+  html += rows.map(r => '<tr>' + fields.map(f => '<td>' + escapeHtml(String(r[f] ?? '').slice(0,80)) + '</td>').join('') + '<td><button class="danger" onclick="'+delFn.name+'('+r.id+')">删除</button></td></tr>').join('');
+  html += '</tbody></table>';
+  document.getElementById(el).innerHTML = html;
+}
+function escapeHtml(s){ return s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+</script>
+</body>
+</html>
