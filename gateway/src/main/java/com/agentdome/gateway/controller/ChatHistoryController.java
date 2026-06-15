@@ -62,7 +62,8 @@ public class ChatHistoryController {
     public ResponseEntity<ApiResponse<Map<String, String>>> newSession(HttpServletRequest request) {
         Long userId = (Long) request.getAttribute("userId");
         String sessionId = agentService.newSession(userId);
-        Map<String, String> result = Map.of("sessionId", sessionId);
+        Map<String, String> result = new LinkedHashMap<>();
+        result.put("sessionId", sessionId);
         return ResponseEntity.ok(ApiResponse.ok(result));
     }
 
@@ -100,6 +101,8 @@ public class ChatHistoryController {
     public ResponseEntity<ApiResponse<Map<String, Object>>> clearSessions(HttpServletRequest request) {
         Long userId = (Long) request.getAttribute("userId");
         int count = chatHistoryService.deleteAllSessions(userId);
-        return ResponseEntity.ok(ApiResponse.ok(Map.of("deleted", count)));
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("deleted", count);
+        return ResponseEntity.ok(ApiResponse.ok(result));
     }
 }
