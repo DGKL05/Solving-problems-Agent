@@ -22,6 +22,9 @@ public class ChatHistoryController {
         this.agentService = agentService;
     }
 
+    /**
+     * 查询会话列表。
+     */
     @GetMapping("/sessions")
     public ResponseEntity<ApiResponse<List<Map<String, Object>>>> listSessions(HttpServletRequest request) {
         Long userId = (Long) request.getAttribute("userId");
@@ -38,16 +41,23 @@ public class ChatHistoryController {
         return ResponseEntity.ok(ApiResponse.ok(result));
     }
 
+    /**
+     * 查询会话详情。
+     */
     @GetMapping("/sessions/{sessionId}")
     public ResponseEntity<ApiResponse<ChatSessionDocument>> getSession(
             @PathVariable String sessionId, HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute("userId");
         ChatSessionDocument doc = chatHistoryService.getSession(sessionId);
-        if (doc == null) {
-            return ResponseEntity.ok(ApiResponse.ok(null));
+        if (doc == null || !doc.getUserId().equals(userId)) {
+            return ResponseEntity.status(404).body(ApiResponse.error(404, "会话不存在"));
         }
         return ResponseEntity.ok(ApiResponse.ok(doc));
     }
 
+    /**
+     * 新增会话。
+     */
     @PostMapping("/sessions")
     public ResponseEntity<ApiResponse<Map<String, String>>> newSession(HttpServletRequest request) {
         Long userId = (Long) request.getAttribute("userId");
@@ -56,11 +66,40 @@ public class ChatHistoryController {
         return ResponseEntity.ok(ApiResponse.ok(result));
     }
 
+    /**
+     * 修改会话标题。
+     */
+    @PutMapping("/sessions/{sessionId}")
+    public ResponseEntity<ApiResponse<ChatSessionDocument>> updateSession(
+            @PathVariable String sessionId,
+            @RequestBody Map<String, String> body,
+            HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute("userId");
+        ChatSessionDocument doc = chatHistoryService.updateSessionTitle(sessionId, userId, body.get("title"));
+        if (doc == null) {
+            return ResponseEntity.status(404).body(ApiResponse.error(404, "会话不存在"));
+        }
+        return ResponseEntity.ok(ApiResponse.ok(doc));
+    }
+
+    /**
+     * 删除指定会话。
+     */
     @DeleteMapping("/sessions/{sessionId}")
     public ResponseEntity<ApiResponse<String>> deleteSession(
             @PathVariable String sessionId, HttpServletRequest request) {
         Long userId = (Long) request.getAttribute("userId");
         chatHistoryService.deleteSession(sessionId, userId);
         return ResponseEntity.ok(ApiResponse.ok("已删除"));
+    }
+
+    /**
+     * 清空当前用户全部会话。
+     */
+    @DeleteMapping("/sessions")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> clearSessions(HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute("userId");
+        int count = chatHistoryService.deleteAllSessions(userId);
+        return ResponseEntity.ok(ApiResponse.ok(Map.of("deleted", count)));
     }
 }
