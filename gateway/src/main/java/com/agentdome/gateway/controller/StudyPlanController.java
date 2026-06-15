@@ -9,6 +9,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -42,12 +43,13 @@ public class StudyPlanController {
         }
         List<StudyPlan> records = query.getResultList();
         Long total = countQuery.getSingleResult();
-        return ResponseEntity.ok(ApiResponse.ok(Map.of(
-                "content", records,
-                "totalElements", total,
-                "page", page,
-                "size", size
-        )));
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("content", records);
+        result.put("totalElements", total);
+        result.put("page", page);
+        result.put("size", size);
+        return ResponseEntity.ok(ApiResponse.ok(result));
     }
 
     @PostMapping
@@ -109,6 +111,10 @@ public class StudyPlanController {
             return ResponseEntity.status(404).body(ApiResponse.error(404, "学习计划不存在"));
         }
         entityManager.remove(plan);
-        return ResponseEntity.ok(ApiResponse.ok(Map.of("deleted", true, "id", id)));
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("deleted", true);
+        result.put("id", id);
+        return ResponseEntity.ok(ApiResponse.ok(result));
     }
 }
