@@ -16,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -129,7 +130,10 @@ public class MistakeController {
                 .filter(m -> m.getUserId().equals(userId))
                 .map(m -> {
                     mistakeRepository.delete(m);
-                    return ResponseEntity.ok(ApiResponse.ok(Map.of("deleted", true, "id", id)));
+                    Map<String, Object> result = new LinkedHashMap<>();
+                    result.put("deleted", true);
+                    result.put("id", id);
+                    return ResponseEntity.ok(ApiResponse.ok(result));
                 })
                 .orElse(ResponseEntity.status(404).body(ApiResponse.error(404, "错题不存在")));
     }
@@ -141,7 +145,9 @@ public class MistakeController {
     public ResponseEntity<ApiResponse<Map<String, Object>>> clearMistakes(HttpServletRequest request) {
         Long userId = (Long) request.getAttribute("userId");
         int count = mistakeService.clearAllMistakes(userId);
-        return ResponseEntity.ok(ApiResponse.ok(Map.of("deleted", count)));
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("deleted", count);
+        return ResponseEntity.ok(ApiResponse.ok(result));
     }
 
     private Long toLong(Object value) {
